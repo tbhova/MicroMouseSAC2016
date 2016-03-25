@@ -11,7 +11,11 @@
 
   //store xy coordinate and pointing direction
   struct Position {
-    int x; int y; Cardinal dir;
+    char x; char y; Cardinal dir;
+  };
+  
+  struct Cell {
+    char x, y;
   };
 
  #endif

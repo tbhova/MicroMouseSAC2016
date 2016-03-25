@@ -21,9 +21,15 @@ void loop() {
   Position currentPosition = mouse->getPosition();
   
   //get new direction from maze and have mouse move there (maze handles optimal route)
-  mouse->moveTo(maze->getDirection(currentPosition));
+  mouse->moveTo(maze->getDirection(currentPosition), maze->allCellsVisited());
   
   if (!maze->allCellsVisited()) {
+    //update current position with mouse's new position
+    currentPosition = mouse->getPosition();
+    
+    //state we visited this cell
+    maze->cellVisited(currentPosition.x, currentPosition.y);
+    
     //update walls
     if (mouse->NorthWall()) {
       maze->placeWall(currentPosition.x, currentPosition.y, north);

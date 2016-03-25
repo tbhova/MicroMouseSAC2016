@@ -1,5 +1,6 @@
 #include "globals.h"
 #include <assert.h>
+#include <QueueList.h>
 
 namespace hova {
 
@@ -34,7 +35,7 @@ namespace hova {
     
     bool temp = true;
     for (int i = 0; i < 16; i++) {
-      if (cellsVisited[i] == 0xFF)
+      if (cellsVisited[i] != 0xFF)
         temp = false;
     }
 
@@ -42,7 +43,7 @@ namespace hova {
     return allVisited;
   }
 
-  void Maze::placeWall(int row, int column, Cardinal wall) {
+  void Maze::placeWall(char row, char column, Cardinal wall) {
     switch (wall) {
       case (north):
         mazeWalls[row][column] = mazeWalls[row][column] | 8; //1000 binary, set the 4th bit
@@ -59,7 +60,11 @@ namespace hova {
     }
   }
 
-  void Maze::removeWall(int row, int column, Cardinal wall) {
+  void Maze::cellVisited(char row, char column) {
+    cellsVisited[row] = cellsVisited[row] | (1 << column);
+  }
+
+  void Maze::removeWall(char row, char column, Cardinal wall) {
     switch (wall) {
       case (north):
         mazeWalls[row][column] = mazeWalls[row][column] & 7; //0111 binary, unset the 4th bit
@@ -82,13 +87,147 @@ namespace hova {
     return this->discoverMoreCells(pos);
   }
 
-  Cardinal Maze::discoverMoreCells(const Position &pos) {
+  /*int discoverCellsRecursive(Position pos, int depth) {
+    //need to avoid visiting the middle cells before the others are discovered
+    
+    //if discovered return depth
+    if (!isCellVisited(pos.x, pos.y)
+      return depth;
+      
+    //if !discovered  
+    char bestChoice[4]; // number of cells to move through to find an undiscovered cell, NSWE
+    if (isWall(pos.x, pos.y, north) {
+      pos.y++;
+      bestChoice[0] = discoverCellsRecursive(pos, 0);
+      pos.y--;
+    } else {
+      bestChoice[0] = 127; // infinity for the purpose of a char
+    }
+    
+    if (isWall(pos.x, pos.y, south) {
+      pos.y--;
+      bestChoice[1] = discoverCellsRecursive(pos, 0);
+      pos.y++;
+    } else {
+      bestChoice[1] = 127; // infinity for the purpose of a char
+    }
+
+    if (isWall(pos.x, pos.y, west) {
+      pos.x--;
+      bestChoice[2] = discoverCellsRecursive(pos, 0);
+      pos.x++;
+    } else {
+      bestChoice[2] = 127; // infinity for the purpose of a char
+    }
+
+    if (isWall(pos.x, pos.y, east) {
+      pos.x++;
+      bestChoice[3] = discoverCellsRecursive(pos, 0);
+      pos.x--;
+    } else {
+      bestChoice[3] = 127; // infinity for the purpose of a char
+    } 
+
+    char minimum = 0;
+    for (int i = 1; i <4; i ++) {
+      if (bestChoice[i] < bestChoice[minimum])
+        minimum = i;
+    }
+    return bestChoice[minimum];
+  }*/
+  
+  Cardinal Maze::discoverMoreCells(Position pos) {
+    //set up bfs
+    char bfsDisc[16];
+    unsigned char distanceTo[16][16];
+    for (int i = 0; i < 16; i++) {
+      bfsDisc[i] = 0;
+    }
+    
+    //select a cell to go to
+
+    //prefer to go straight
+    /*swtich (pos.dir) {
+      case (north) :
+        if(!isWall(pos.x, pos.y+1) && !isCellVisited(pos.x, pos.y+1))
+          return north;
+        break;
+      case (south) : 
+       if(!isWall(pos.x, pos.y-1) && !isCellVisited(pos.x, pos.y-1))
+          return north;
+        break;
+      case (west) : 
+       if(!isWall(pos.x-1, pos.y) && !isCellVisited(pos.x-1, pos.y))
+          return north;
+        break;
+      case (east) : 
+       if(!isWall(pos.x+1, pos.y) && !isCellVisited(pos.x+1, pos.y))
+          return north;
+        break;
+    }*/
+
+    //select nearest undiscovered cell
+    Position dest = findNearestUndiscoveredCell(pos);
+    return directionToCell(dest, pos, bfsDisc);
+  }
+
+  Position Maze::findNearestUndiscoveredCell(Position current) {
+    for (int i = 0; i < 16; i++) {
+      if((current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
+        current.x++;
+        return current;
+      }
+      if((current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
+        current.y++;
+        return current;
+      }
+      if((current.x - i >= 0) && !isCellVisited(current.x - i, current.y)) {
+        current.x--;
+        return current;
+      }
+      if((current.y - i >= 0) && !isCellVisited(current.x, current.y-i)) {
+        current.y--;
+        return current;
+      }
+    }
+  }
+
+  Cardinal Maze::directionToCell(Position &des, Position current, char discovered[]) {
+    //our bfs has now visited the current cell
+    discovered[current.x] |= (1 << current.y+1);
+    
+    QueueList<Cell> queue;
+
+    Cell cur;
+    cur.x = current.x;
+    cur.y = current.y;
+//    queue.push_back(new Cell
     
   }
 
   Cardinal Maze::bestRoute(const Position &pos) {
     
   }
-  
-}
 
+  bool Maze::isCellVisited(char row, char column) {
+    return (cellsVisited[row] & (1 << column+1) > 0);
+  }
+  bool Maze::isWall(char row, char column, Cardinal dir) {
+    char shift;
+    switch (dir) {
+      case (north) :
+        shift = 4;
+        break;
+      case (south) :
+        shift = 3;
+        break;
+      case (west) :
+        shift = 2;
+        break;
+      case (east) :
+        shift = 1;
+        break;
+    }
+    return (mazeWalls[row][column] & (1 << shift) > 0);
+  }
+}
