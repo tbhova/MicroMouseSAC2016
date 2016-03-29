@@ -2,16 +2,34 @@
 #include "maze.h"
 #include "MicroMouse.h"
 #include "DataTypes.h"
+#include <NewPing.h>
 
 using namespace std;
 using namespace hova;
 
 MicroMouse *mouse;
 Maze *maze;
+NewPing *frontSensor;
+NewPing *leftSensor;
+NewPing *rightSensor;
 void setup() {
   // put your setup code here, to run once:
   mouse = new MicroMouse();
   maze = new Maze();
+
+frontSensor = new NewPing(frontTP, frontEP, 18);
+
+//leftSensor = new NewPing(leftTP, leftEP, 18);
+
+//rightSensor = new NewPing(rightTP, rightEP, 18);
+
+  /*pinMode(frontTP, OUTPUT);
+  pinMode(frontEP, INPUT);
+  pinMode(rightTP, OUTPUT);
+  pinMode(rightEP, INPUT);
+  pinMode(leftTP, OUTPUT);
+  pinMode(leftEP, INPUT);*/
+  
 }
 
 void loop() {
@@ -31,17 +49,9 @@ void loop() {
     maze->cellVisited(currentPosition.x, currentPosition.y);
     
     //update walls
-    if (mouse->NorthWall()) {
-      maze->placeWall(currentPosition.x, currentPosition.y, north);
-    }
-    if (mouse->SouthWall()) {
-      maze->placeWall(currentPosition.x, currentPosition.y, south);
-    }
-    if (mouse->WestWall()) {
-      maze->placeWall(currentPosition.x, currentPosition.y, west);
-    }
-    if (mouse->EastWall()) {
-      maze->placeWall(currentPosition.x, currentPosition.y, east);
+    for (unsigned char i = north; i <= west; i++) {
+      if (mouse->isWall((Cardinal)i))
+        maze->placeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
     }
   }
 }

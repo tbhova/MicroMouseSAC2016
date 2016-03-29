@@ -1,9 +1,13 @@
 #include "MicroMouse.h"
-#include <assert.h>
+//#include <assert.h>
+#include "globals.h"
 
 using namespace hova;
 
-MicroMouse::MicroMouse(int corner) {
+MicroMouse::MicroMouse(unsigned char corner) {
+  //motors.flipLeftMotor(true);
+  //motors.flipRightMotor(true);
+  
   switch (corner) {
   case 0: //initial corner (south west)
     CurrentPosition.x = 0;
@@ -26,32 +30,122 @@ MicroMouse::MicroMouse(int corner) {
     CurrentPosition.dir = north;
     break;
   default:
-    assert(false);
+    CurrentPosition.x = 0;
+    CurrentPosition.y = 0;
   }
 }
 
-void MicroMouse::updateMovement(bool reset) {
+unsigned int MicroMouse::updateMovement(bool reset) {
   static int distance = 0;
   if (reset) {
     distance = 0;
   }
-  //update motors with encoder feedback
+  unsigned char leftMovement, rightMovement;
+
+  //update variables with encoder feedback
+  #warning //encoder code to do
+  leftMovement = 0;
+  rightMovement = 0;
+
+  distance += (leftMovement + rightMovement)/2;
+
+  return distance;
 }
 
-void MicroMouse::moveTo(const Cardinal &dir, bool mazeDiscovered) {
-  wallsSeen = 0; //reset all bits
-  #warning //hardware
-  //to do hardware movement
-  bool inNewCell = false;
-  while (!inNewCell) {
-    this->updateMovement();
-    if (!mazeDiscovered) {  
-      //to do hardware wall updates  
+void MicroMouse::updateDirection(const Cardinal &desired) {
+  unsigned char delta = desired - CurrentPosition.dir;
+  //return early if we are going strait
+  if (delta == 0)
+    return;
+    
+  this->CurrentPosition.dir = desired;  
+  
+  if (delta == 3) {
+    //north to west turn left
+    turn90();
+    return;
+  }
+  if (delta == -3) {
+    //west to north turn right
+    turn90(true);
+    return;
+  }
+  if (delta > 0) {
+    for (int i = 0; i < delta; i++) {
+      //turn left
+      turn90();
+    }
+  } else if (delta < 0) {
+    for (int i = 0; i < -delta; i++) {
+      //turn right
+      turn90(true);
     }
   }
+}
 
+void MicroMouse::turn90(bool right) {
+  #define turnSpeed 300
   
+  char dir = 1;
+  if (right)
+    dir = -1;
+  motors.setSpeeds(turnSpeed*dir, -turnSpeed*dir);
+
+  #warning //bad
+  delay(350);
   
+  while(true) {
+    //process encoders and update motor speeds
+    break;
+  }
+  motors.setSpeeds(0, 0);
+}
+
+void MicroMouse::moveForwardOneCell() {
+  #define forwardSpeed 400
+  motors.setSpeeds(forwardSpeed, forwardSpeed);
+
+  #warning //bad
+  delay(500);
+  
+  while(true) {
+    //update encoders
+    break;
+  }
+  motors.setSpeeds(0, 0);
+}
+
+void MicroMouse::discoverWalls() {
+  #define isWallPresent 500
+  
+  wallsSeen = 0; //reset all bits
+  
+  //get median of 5 readings for each wall
+  //back wall is certainly open so only process 3 front walls
+  if (frontSensor->ping() > isWallPresent) {
+    wallsSeen |= (1 << CurrentPosition.dir);
+  }
+  if (leftSensor->ping() < isWallPresent) {
+    unsigned char wallDir = CurrentPosition.dir - 1;
+    if (wallDir == 0)
+      wallDir = 4;
+    wallsSeen |= (1 << wallDir);
+  }
+  if (rightSensor->ping() < isWallPresent) {
+    unsigned char wallDir = CurrentPosition.dir + 1;
+    if (wallDir == 5)
+      wallDir = 1;
+    wallsSeen |= (1 << wallDir);
+  }
+}
+
+void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {
+  this->updateDirection(dir);
+  this->moveForwardOneCell();
+  
+  if (!mazeDiscovered) {  
+      this->discoverWalls();
+  }
   
   //update coordinates
   switch (dir) {
@@ -68,24 +162,10 @@ void MicroMouse::moveTo(const Cardinal &dir, bool mazeDiscovered) {
       CurrentPosition.x++;
       break;
   }
-  //update direction
-  CurrentPosition.dir = dir;
 }
 
-bool MicroMouse::NorthWall() const{
-  return ((wallsSeen & 0x8) > 0);
-}
-
-bool MicroMouse::SouthWall() const{
-  return ((wallsSeen & 0x4) > 0);
-}
-
-bool MicroMouse::WestWall() const{
-  return ((wallsSeen & 0x2) > 0);
-}
-
-bool MicroMouse::EastWall() const{
-  return ((wallsSeen & 0x1) > 0);
+bool MicroMouse::isWall(const Cardinal &dir) const{
+  return ((wallsSeen & (1 << dir)) > 0);
 }
 
 Position MicroMouse::getPosition() const{

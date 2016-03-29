@@ -1,5 +1,4 @@
 #include "globals.h"
-#include <assert.h>
 #include <QueueList.h>
 
 namespace hova {
@@ -15,9 +14,9 @@ namespace hova {
     }
   }
 
-  Maze::Maze(const Maze &orig) {
+  /*Maze::Maze(const Maze &orig) {
     assert(false);
-  }
+  }*/
 
   void Maze::resetMaze() {
     for(int i = 0; i < 16; i++) {
@@ -43,42 +42,31 @@ namespace hova {
     return allVisited;
   }
 
-  void Maze::placeWall(char row, char column, Cardinal wall) {
-    switch (wall) {
-      case (north):
-        mazeWalls[row][column] = mazeWalls[row][column] | 8; //1000 binary, set the 4th bit
-        break;
-      case (south):
-        mazeWalls[row][column] = mazeWalls[row][column] | 4; //0100 binary, set the 3rd bit
-        break;
-      case (west):
-        mazeWalls[row][column] = mazeWalls[row][column] | 2; //0010 binary, set the 2nd bit
-        break;
-      case (east):
-        mazeWalls[row][column] = mazeWalls[row][column] | 1; //0001 binary, set the 1st bit
-        break;
-    }
+  void Maze::placeWall(unsigned char row, unsigned char column, Cardinal wall) {
+    mazeWalls[row][column] |= (1 << wall);
   }
 
-  void Maze::cellVisited(char row, char column) {
+  void Maze::cellVisited(unsigned char row, unsigned char column) {
     cellsVisited[row] = cellsVisited[row] | (1 << column);
   }
 
-  void Maze::removeWall(char row, char column, Cardinal wall) {
+  void Maze::removeWall(unsigned char row, unsigned char column, Cardinal wall) {
+    mazeWalls[row][column] &= (~(1 << wall)) & 0x0F; //set the wall-th bit to 0, shift in a 1 then negate the number, mask the 4 MSBs
+    /*
     switch (wall) {
-      case (north):
+      case (west):
         mazeWalls[row][column] = mazeWalls[row][column] & 7; //0111 binary, unset the 4th bit
         break;
       case (south):
         mazeWalls[row][column] = mazeWalls[row][column] & 11; //1011 binary, unset the 3rd bit
         break;
-      case (west):
+      case (east):
         mazeWalls[row][column] = mazeWalls[row][column] & 13; //1101 binary, unset the 2nd bit
         break;
-      case (east):
+      case (north):
         mazeWalls[row][column] = mazeWalls[row][column] & 14; //1110 binary, unset the 1st bit
         break;
-    }
+    }*/
   }
 
   Cardinal Maze::getDirection(const Position &pos) {
@@ -138,7 +126,7 @@ namespace hova {
   
   Cardinal Maze::discoverMoreCells(Position pos) {
     //set up bfs
-    char bfsDisc[16];
+    unsigned char bfsDisc[16];
     unsigned char distanceTo[16][16];
     for (int i = 0; i < 16; i++) {
       bfsDisc[i] = 0;
@@ -171,7 +159,7 @@ namespace hova {
     return directionToCell(dest, pos, bfsDisc);
   }
 
-  Position Maze::findNearestUndiscoveredCell(Position current) {
+  Position Maze::findNearestUndiscoveredCell(Position current) const {
     for (int i = 0; i < 16; i++) {
       if((current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
         current.x++;
@@ -190,11 +178,12 @@ namespace hova {
         return current;
       }
     }
+    return current;
   }
 
-  Cardinal Maze::directionToCell(Position &des, Position current, char discovered[]) {
+  Cardinal Maze::directionToCell(Position &des, Position current, unsigned char discovered[]) {
     //our bfs has now visited the current cell
-    discovered[current.x] |= (1 << current.y+1);
+    discovered[current.x] |= (1 << (current.y+1));
     
     QueueList<Cell> queue;
 
@@ -206,28 +195,15 @@ namespace hova {
   }
 
   Cardinal Maze::bestRoute(const Position &pos) {
-    
+    #warning
+    return north;
   }
 
-  bool Maze::isCellVisited(char row, char column) {
-    return (cellsVisited[row] & (1 << column+1) > 0);
+  bool Maze::isCellVisited(const unsigned char row, const unsigned char column) const {
+    return ((cellsVisited[row] & (1 << (column+1))) > 0);
   }
-  bool Maze::isWall(char row, char column, Cardinal dir) {
-    char shift;
-    switch (dir) {
-      case (north) :
-        shift = 4;
-        break;
-      case (south) :
-        shift = 3;
-        break;
-      case (west) :
-        shift = 2;
-        break;
-      case (east) :
-        shift = 1;
-        break;
-    }
-    return (mazeWalls[row][column] & (1 << shift) > 0);
+  
+  bool Maze::isWall(const unsigned char row, const unsigned char column, const Cardinal dir) const {
+    return ((mazeWalls[row][column] & (1 << dir)) > 0);
   }
 }
