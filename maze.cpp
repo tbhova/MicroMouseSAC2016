@@ -51,7 +51,7 @@ namespace hova {
   }
 
   void Maze::removeWall(unsigned char row, unsigned char column, Cardinal wall) {
-    mazeWalls[row][column] &= (~(1 << wall)) & 0x0F; //set the wall-th bit to 0, shift in a 1 then negate the number, mask the 4 MSBs
+    mazeWalls[row][column] &= (1 << wall)) ^ 0x0F; //set the wall-th bit to 0, shift in a 1 then negate (xor) the number
     /*
     switch (wall) {
       case (west):
