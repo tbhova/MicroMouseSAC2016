@@ -2,26 +2,37 @@
 #include "maze.h"
 #include "MicroMouse.h"
 #include "DataTypes.h"
-#include <NewPing.h>
+//#include <NewPing.h>
+#include "Hardware.h"
 
 using namespace std;
 using namespace hova;
 
 MicroMouse *mouse;
 Maze *maze;
-NewPing *frontSensor;
+/*NewPing *frontSensor;
 NewPing *leftSensor;
-NewPing *rightSensor;
+NewPing *rightSensor;*/
+
 void setup() {
   // put your setup code here, to run once:
   mouse = new MicroMouse();
   maze = new Maze();
 
-frontSensor = new NewPing(frontTP, frontEP, 18);
+  pinMode(frontIRSensor, INPUT);
+  pinMode(leftIRSensor, INPUT);
+  pinMode(rightIRSensor, INPUT);
+  pinMode(rightEncoder, INPUT);
+  pinMode(leftEncoder, INPUT);
 
-//leftSensor = new NewPing(leftTP, leftEP, 18);
-
-//rightSensor = new NewPing(rightTP, rightEP, 18);
+  resetEncoders();
+  //attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, CHANGE);
+  
+  
+  /*frontSensor = new NewPing(frontTP, frontEP, 18);
+  leftSensor = new NewPing(leftTP, leftEP, 18);
+  rightSensor = new NewPing(rightTP, rightEP, 18);*/
 
   /*pinMode(frontTP, OUTPUT);
   pinMode(frontEP, INPUT);
@@ -29,12 +40,11 @@ frontSensor = new NewPing(frontTP, frontEP, 18);
   pinMode(rightEP, INPUT);
   pinMode(leftTP, OUTPUT);
   pinMode(leftEP, INPUT);*/
-  
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+  
   //get mouse position
   Position currentPosition = mouse->getPosition();
   

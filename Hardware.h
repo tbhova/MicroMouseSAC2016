@@ -1,17 +1,25 @@
-#ifndef Hardware_h
-#define hardware_h
-#include <NewPing.h>
+#pragma once
 
-#define frontTP 1
+//#include <NewPing.h>
+
+/*#define frontTP 1
 #define frontEP 4
 #define leftTP 3
 #define leftEP 5
 #define rightEP 2
-#define rightTP 11
+#define rightTP 11 */
+
+#define frontIRSensor 5
+#define leftIRSensor 11
+#define rightIRSensor 2
+#define rightEncoder 7
+#define leftEncoder 3
+
+#warning check pins
 
 namespace hova {
 
-class Motors {
+/*class Motors {
   public:
   Motors();
   
@@ -24,14 +32,7 @@ class IRSensorArray {
   IRSensorArray();
 
   private:
-};
-
-class Encoders {
-  public:
-  Encoders();
-
-  private:
-};
+};*/
 
 class Gyroscope {
   public:
@@ -40,6 +41,14 @@ class Gyroscope {
   private:
 };
 
+//left encoder ISR
+void leftEncoderUpdate();
+
+//right encoder ISR
+void rightEncoderUpdate();
+
+void resetEncoders();
+
 }
 
-#endif
+//#endif

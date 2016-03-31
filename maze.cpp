@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "maze.h"
 #include <QueueList.h>
 
 namespace hova {
@@ -6,7 +7,7 @@ namespace hova {
   Maze::Maze() {
     this->resetMaze();
     //place outside border walls
-    for (int i = 0; i < 16; i++) {
+    for (byte i = 0; i < 16; i++) {
       this->placeWall(0, i, north);
       this->placeWall(15, i, south);
       this->placeWall(i, 0, west);
@@ -19,8 +20,8 @@ namespace hova {
   }*/
 
   void Maze::resetMaze() {
-    for(int i = 0; i < 16; i++) {
-      for (int j = 0; j < 16; j++) {
+    for(byte i = 0; i < 16; i++) {
+      for (byte j = 0; j < 16; j++) {
         mazeWalls[i][j] = 0;
       }
      cellsVisited[i] = 0; 
@@ -33,7 +34,7 @@ namespace hova {
       return allVisited;
     
     bool temp = true;
-    for (int i = 0; i < 16; i++) {
+    for (byte i = 0; i < 16; i++) {
       if (cellsVisited[i] != 0xFF)
         temp = false;
     }
@@ -47,11 +48,11 @@ namespace hova {
   }
 
   void Maze::cellVisited(unsigned char row, unsigned char column) {
-    cellsVisited[row] = cellsVisited[row] | (1 << column);
+    cellsVisited[row] |= (1 << column);
   }
 
   void Maze::removeWall(unsigned char row, unsigned char column, Cardinal wall) {
-    mazeWalls[row][column] &= (1 << wall)) ^ 0x0F; //set the wall-th bit to 0, shift in a 1 then negate (xor) the number
+    mazeWalls[row][column] &= ((1 << wall) ^ 0x0F); //set the wall-th bit to 0, shift in a 1 then negate (xor) the number
     /*
     switch (wall) {
       case (west):
@@ -126,9 +127,9 @@ namespace hova {
   
   Cardinal Maze::discoverMoreCells(Position pos) {
     //set up bfs
-    unsigned char bfsDisc[16];
-    unsigned char distanceTo[16][16];
-    for (int i = 0; i < 16; i++) {
+    short unsigned int bfsDisc[16];
+    //unsigned char distanceTo[16][16];
+    for (byte i = 0; i < 16; i++) {
       bfsDisc[i] = 0;
     }
     
@@ -160,20 +161,36 @@ namespace hova {
   }
 
   Position Maze::findNearestUndiscoveredCell(Position current) const {
-    for (int i = 0; i < 16; i++) {
-      if((current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
+    //determine whether there are cells that aren't the middle that are undiscovered
+    bool otherCellsAvailable = false;
+    for (byte i = 0; i < 16; i++) {
+      for (byte j = 0; j < 16; j++) {
+        if (i != 7 && i != 8 && j != 7 && j != 8 && !isCellVisited(i, j)) {
+          otherCellsAvailable = true;
+          break;
+        }
+      }
+    }
+    ///return early if only center cells exist;
+    if (!otherCellsAvailable) {
+      current.x = 7; current.y = 7;
+      return current;
+    }
+    //look for cell
+    for (byte i = 0; i < 16; i++) {
+      if(current.x + i != 7 && current.x + i != 8 && (current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
         current.x++;
         return current;
       }
-      if((current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
+      if(current.y + i != 7 && current.y + i != 8 && (current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
         current.y++;
         return current;
       }
-      if((current.x - i >= 0) && !isCellVisited(current.x - i, current.y)) {
+      if(current.x - i != 7 && current.x - i != 8 && (current.x - i >= 0) && !isCellVisited(current.x - i, current.y)) {
         current.x--;
         return current;
       }
-      if((current.y - i >= 0) && !isCellVisited(current.x, current.y-i)) {
+      if(current.x - i != 7 && current.y - i != 8 && (current.y - i >= 0) && !isCellVisited(current.x, current.y-i)) {
         current.y--;
         return current;
       }
@@ -181,7 +198,14 @@ namespace hova {
     return current;
   }
 
-  Cardinal Maze::directionToCell(Position &des, Position current, unsigned char discovered[]) {
+  Cardinal Maze::directionToCell(const Position &des, const Position &current, short unsigned int discovered[]) {
+    unsigned char whereFrom[16][16];
+    for (byte i = 0; i < 16; i++) {
+      for (byte j = 0; j < 16; j++) {
+        whereFrom[i][j] = 0;
+      }
+    }
+    
     //our bfs has now visited the current cell
     discovered[current.x] |= (1 << (current.y+1));
     
@@ -190,12 +214,82 @@ namespace hova {
     Cell cur;
     cur.x = current.x;
     cur.y = current.y;
-//    queue.push_back(new Cell
+    queue.push(cur);
+
+    while(!queue.isEmpty()) {
+      cur = queue.pop();
+      //set cellVisited bool bit after popping to avoid infinite looping
+      discovered[cur.x] |= (1 << (cur.y+1));
+
+      //go through adjacency list
+      for (byte i = north; i <= east; i++) {
+        //check if cells are adjacent (no wall)
+        if (!this->isWall(cur.x, cur.y, (Cardinal) i)) {
+          //if cell is adjacent check if cell has already been vistied
+          if ((discovered[cur.x] & (1 << (cur.y+1))) == 0) {
+            //if has not been visited, queue cell
+            Cardinal opposite;
+            switch ((Cardinal)i) {
+              case (north) :
+                cur.y++;
+                opposite = south;
+                break;
+              case (south) :
+                cur.y--;
+                opposite = north;
+                break;
+              case (west) : 
+                cur.x--;
+                opposite = east;
+                break;
+              case (east) :
+                cur.x++;
+                opposite = west;
+                break;
+            }
+            whereFrom[cur.x][cur.y] |= (1 << opposite);
+            queue.push(cur);
+            //if we are at destination, stop
+            if (cur.x == des.x && cur.y == des.y) {
+              //we are done, found our cell
+              break;
+            }
+          }
+        }
+      }
+    }
     
+    //follow the whereFrom and return the first direction
+    cur.x = des.x; cur.y = des.y;
+    while (true) {
+      if (whereFrom[cur.x][cur.y] == 0)
+        break;
+      Cardinal lastMoveOpposite;
+      if (whereFrom[cur.x][cur.y] & (1 << north) ) {
+        cur.y++;
+        lastMoveOpposite = south;
+      } else if (whereFrom[cur.x][cur.y] & (1 << south) ) {
+        cur.y--;
+        lastMoveOpposite = north;
+      } else if (whereFrom[cur.x][cur.y] & (1 << west) ) {
+        cur.x--;
+        lastMoveOpposite = east;
+      } else if (whereFrom[cur.x][cur.y] & (1 << east) ) {
+        cur.x++;
+        lastMoveOpposite = west;
+      } else
+        break;
+        
+      if (cur.x == current.x && cur.y == current.y) {
+        return lastMoveOpposite;
+      }
+    }
+    Serial.println("Error BFS failed");
+    return north;
   }
 
   Cardinal Maze::bestRoute(const Position &pos) {
-    #warning
+    #warning use bfs from above, break up into more methods, making the method more generic, so bfs can be recycled
     return north;
   }
 

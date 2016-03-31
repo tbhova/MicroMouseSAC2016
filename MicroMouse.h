@@ -1,5 +1,7 @@
-#ifndef mouse_h
-#define mouse_h
+#pragma once
+
+//#ifndef mouse_h
+//#define mouse_h
 
 #include "DataTypes.h"
 #include "Hardware.h"
@@ -12,7 +14,7 @@ namespace hova {
     MicroMouse(unsigned char corner = 0);
 
     void moveTo(const Cardinal &dir, const bool mazeDiscovered);
-    unsigned int updateMovement(const bool reset = false);
+    unsigned int getEncoderDistance();
     
     bool isWall(const Cardinal &dir) const;
 
@@ -31,8 +33,8 @@ namespace hova {
     //Motors *motors;
     ZumoMotors motors;
     
-    Encoders encoders;
+//    Encoders encoders;
   };
 }
 
-#endif
+//#endif

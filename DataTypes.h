@@ -1,5 +1,4 @@
-#ifndef DataTypes_h
-#define DataTypes_h
+#pragma once
 
 #warning use values assigned to directions to reduce switches
 //cardinal directions
@@ -18,5 +17,3 @@ struct Position {
 struct Cell {
   unsigned char x, y;
 };
-
-#endif

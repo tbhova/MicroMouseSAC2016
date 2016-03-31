@@ -1,19 +1,14 @@
-#ifndef globals_h
-#define globals_h
+#pragma once
 
-#include "maze.h"
-#include "MicroMouse.h"
-#include "DataTypes.h"
-#include <string.h>
+extern unsigned int leftEncoderCount;
+extern unsigned int rightEncoderCount;
 
 
-extern hova::Maze *maze;
-extern hova::MicroMouse *mouse;
-extern NewPing *frontSensor;
+//extern hova::Maze *maze;
+//extern hova::MicroMouse *mouse;
+
+/*extern NewPing *frontSensor;
 extern NewPing *leftSensor;
-extern NewPing *rightSensor;
+extern NewPing *rightSensor;*/
 
 //String optimalRoute = "";
-
-
-#endif
