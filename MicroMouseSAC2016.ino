@@ -4,6 +4,7 @@
 #include "DataTypes.h"
 //#include <NewPing.h>
 #include "Hardware.h"
+#include <Pushbutton.h>
 
 using namespace std;
 using namespace hova;
@@ -13,7 +14,7 @@ Maze *maze;
 /*NewPing *frontSensor;
 NewPing *leftSensor;
 NewPing *rightSensor;*/
-
+Pushbutton button(ZUMO_BUTTON);
 void setup() {
   // put your setup code here, to run once:
   mouse = new MicroMouse();
@@ -26,8 +27,9 @@ void setup() {
   pinMode(leftEncoder, INPUT);
 
   resetEncoders();
-  //attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
-  //attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ZUMO_BUTTON), buttonUpdate, CHANGE);
   
   
   /*frontSensor = new NewPing(frontTP, frontEP, 18);

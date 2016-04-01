@@ -49,6 +49,7 @@ void rightEncoderUpdate();
 
 void resetEncoders();
 
+void buttonUpdate();
 }
 
 //#endif
