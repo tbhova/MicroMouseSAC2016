@@ -118,7 +118,7 @@ void MicroMouse::discoverWalls() {
   //get median of 5 readings for each wall
   //back wall is certainly open so only process 3 front walls
   //if (frontSensor->ping() > isWallPresent) {
-  if (analogRead(frontIRSensor) > isWallPresent) {
+  /*if (analogRead(frontIRSensor) > isWallPresent) {
     wallsSeen |= (1 << CurrentPosition.dir);
   }
   //if (leftSensor->ping() < isWallPresent) {
@@ -134,7 +134,7 @@ void MicroMouse::discoverWalls() {
     if (wallDir == 5)
       wallDir = 1;
     wallsSeen |= (1 << wallDir);
-  }
+  }*/
 }
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {

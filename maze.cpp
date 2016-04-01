@@ -8,10 +8,10 @@ namespace hova {
     this->resetMaze();
     //place outside border walls
     for (byte i = 0; i < 16; i++) {
-      this->placeWall(0, i, north);
-      this->placeWall(15, i, south);
-      this->placeWall(i, 0, west);
-      this->placeWall(i, 16, east);
+      this->placeWall(0, i, west);
+      this->placeWall(15, i, east);
+      this->placeWall(i, 0, south);
+      this->placeWall(i, 15, north);
     }
   }
 
@@ -169,7 +169,7 @@ namespace hova {
     bool otherCellsAvailable = false;
     for (byte i = 0; i < 16; i++) {
       for (byte j = 0; j < 16; j++) {
-        if (i != 7 && i != 8 && j != 7 && j != 8 && !isCellVisited(i, j)) {
+        if (!((i == 7 || i == 8) && (j == 7 || j == 8)) && !isCellVisited(i, j)) {
           otherCellsAvailable = true;
           break;
         }
@@ -246,9 +246,6 @@ namespace hova {
       }
     }
     
-    //our bfs has now visited the current cell
-    discovered[current.x] |= (1 << (current.y));
-    
     QueueList<Cell> queue;
 
     Cell cur;
@@ -258,23 +255,22 @@ namespace hova {
 
     while(!queue.isEmpty()) {
       cur = queue.peek();
-      if(queue.isEmpty())
-        Serial.println("empty");
         
       Serial.print(cur.x);
       Serial.print(' ');
       Serial.println(cur.y);
-      //set cellVisited bool bit after popping to avoid infinite looping
-      discovered[cur.x] |= (1 << (cur.y));
-
+      
+      //check if cell has already been vistied
+      if ((discovered[cur.x] & (1 << (cur.y))) == 0) {
       //go through adjacency list
-      for (byte i = north; i <= east; i++) {
+      for (byte i = north; i <= west; i++) {
+        /*Serial.print("Loop ");
+        Serial.println(i);*/
         cur = queue.peek(); //update front element since we modify it
         //check if cells are adjacent (no wall)
         if (!this->isWall(cur.x, cur.y, (Cardinal) i)) {
-          //if cell is adjacent check if cell has already been vistied
-          if ((discovered[cur.x] & (1 << (cur.y))) == 0) {
-            //if has not been visited, queue cell
+     /*     Serial.print("No wall ");
+          Serial.println(i);*/
             Cardinal opposite;
             switch ((Cardinal)i) {
               case (north) :
@@ -295,22 +291,29 @@ namespace hova {
                 break;
             }
             whereFrom[cur.x][cur.y] = opposite;
-            if(queue.isEmpty())
-              Serial.println("empty2");
+            Serial.print("push cell ");
+;            Serial.print(cur.x);
+            Serial.print(' ');
+            Serial.println(cur.y);
             queue.push(cur);
             //if we are at destination, stop
-            if(queue.isEmpty())
-              Serial.println("empty3");
             if (cur.x == des.x && cur.y == des.y) {
               Serial.println("BFS found");
               //we are done, found our cell
+              //empty the queue and break out of for loop
+              cur = queue.pop();
+              while(!queue.isEmpty())
+                queue.pop();
               break;
             }
           }
         }
       }
       //we are done with front element now
-      queue.pop();
+      if (!queue.isEmpty())
+        cur = queue.pop();
+      //set cell to visited
+      discovered[cur.x] |= (1 << (cur.y));      
     }
     
     //follow the whereFrom and return the first direction
