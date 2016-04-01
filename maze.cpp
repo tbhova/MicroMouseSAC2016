@@ -157,6 +157,10 @@ namespace hova {
 
     //select nearest undiscovered cell
     Position dest = findNearestUndiscoveredCell(pos);
+    Serial.print("dest ");
+    Serial.print(dest.x);
+    Serial.print(" ");
+    Serial.println(dest.y);
     return directionToCell(dest, pos, bfsDisc);
   }
 
@@ -173,25 +177,53 @@ namespace hova {
     }
     ///return early if only center cells exist;
     if (!otherCellsAvailable) {
-      current.x = 7; current.y = 7;
+      #warning ensure to check for walls in center, that will break this code
+      static unsigned char centersVisited = 0;
+      switch (centersVisited) {
+      case(0):
+        current.x = 7; current.y = 7;
+        centersVisited++;
+        break;
+      case(1):
+        current.x = 7; current.y = 8;
+        centersVisited++;
+        break;
+      case(2):
+        current.x = 8; current.y = 8;
+        centersVisited++;
+        break;
+      case(3):
+        current.x = 8; current.y = 7;
+        centersVisited++;
+        break;
+      }
       return current;
     }
     //look for cell
-    for (byte i = 0; i < 16; i++) {
+    for (byte i = 1; i < 15; i++) {
       if(current.x + i != 7 && current.x + i != 8 && (current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
-        current.x++;
+        current.x += i;
         return current;
-      }
+      } /*else {
+        Serial.print(current.x);
+        Serial.print(' ');
+        Serial.print(i);
+        Serial.print(' ');
+        if(isCellVisited(current.x+i, current.y))
+          Serial.println('T');
+        else
+          Serial.println('F');
+      }*/
       if(current.y + i != 7 && current.y + i != 8 && (current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
-        current.y++;
+        current.y += i;
         return current;
       }
       if(current.x - i != 7 && current.x - i != 8 && (current.x - i >= 0) && !isCellVisited(current.x - i, current.y)) {
-        current.x--;
+        current.x -= i;
         return current;
       }
       if(current.x - i != 7 && current.y - i != 8 && (current.y - i >= 0) && !isCellVisited(current.x, current.y-i)) {
-        current.y--;
+        current.y -= i;
         return current;
       }
     }
@@ -199,6 +231,14 @@ namespace hova {
   }
 
   Cardinal Maze::directionToCell(const Position &des, const Position &current, short unsigned int discovered[]) {
+    Serial.print("dir to ");
+    Serial.print(des.x);
+    Serial.print(' ');
+    Serial.print(des.y);
+    Serial.print(' ');
+    Serial.print(current.x);
+    Serial.print(' ');
+    Serial.println(current.y);
     unsigned char whereFrom[16][16];
     for (byte i = 0; i < 16; i++) {
       for (byte j = 0; j < 16; j++) {
@@ -207,7 +247,7 @@ namespace hova {
     }
     
     //our bfs has now visited the current cell
-    discovered[current.x] |= (1 << (current.y+1));
+    discovered[current.x] |= (1 << (current.y));
     
     QueueList<Cell> queue;
 
@@ -217,16 +257,23 @@ namespace hova {
     queue.push(cur);
 
     while(!queue.isEmpty()) {
-      cur = queue.pop();
+      cur = queue.peek();
+      if(queue.isEmpty())
+        Serial.println("empty");
+        
+      Serial.print(cur.x);
+      Serial.print(' ');
+      Serial.println(cur.y);
       //set cellVisited bool bit after popping to avoid infinite looping
-      discovered[cur.x] |= (1 << (cur.y+1));
+      discovered[cur.x] |= (1 << (cur.y));
 
       //go through adjacency list
       for (byte i = north; i <= east; i++) {
+        cur = queue.peek(); //update front element since we modify it
         //check if cells are adjacent (no wall)
         if (!this->isWall(cur.x, cur.y, (Cardinal) i)) {
           //if cell is adjacent check if cell has already been vistied
-          if ((discovered[cur.x] & (1 << (cur.y+1))) == 0) {
+          if ((discovered[cur.x] & (1 << (cur.y))) == 0) {
             //if has not been visited, queue cell
             Cardinal opposite;
             switch ((Cardinal)i) {
@@ -247,38 +294,55 @@ namespace hova {
                 opposite = west;
                 break;
             }
-            whereFrom[cur.x][cur.y] |= (1 << opposite);
+            whereFrom[cur.x][cur.y] = opposite;
+            if(queue.isEmpty())
+              Serial.println("empty2");
             queue.push(cur);
             //if we are at destination, stop
+            if(queue.isEmpty())
+              Serial.println("empty3");
             if (cur.x == des.x && cur.y == des.y) {
+              Serial.println("BFS found");
               //we are done, found our cell
               break;
             }
           }
         }
       }
+      //we are done with front element now
+      queue.pop();
     }
     
     //follow the whereFrom and return the first direction
     cur.x = des.x; cur.y = des.y;
     while (true) {
+      Serial.print("trace ");
+      Serial.print(cur.x);
+      Serial.print(' ');
+      Serial.println(cur.y);
+      if (cur.x >= 16 || cur.x < 0 || cur.y < 0 || cur.y >=16)
+        break;
       if (whereFrom[cur.x][cur.y] == 0)
         break;
       Cardinal lastMoveOpposite;
-      if (whereFrom[cur.x][cur.y] & (1 << north) ) {
-        cur.y++;
-        lastMoveOpposite = south;
-      } else if (whereFrom[cur.x][cur.y] & (1 << south) ) {
-        cur.y--;
-        lastMoveOpposite = north;
-      } else if (whereFrom[cur.x][cur.y] & (1 << west) ) {
-        cur.x--;
-        lastMoveOpposite = east;
-      } else if (whereFrom[cur.x][cur.y] & (1 << east) ) {
-        cur.x++;
-        lastMoveOpposite = west;
-      } else
-        break;
+      switch ((Cardinal)whereFrom[cur.x][cur.y]) {
+        case (north) :
+          cur.y++;
+          lastMoveOpposite = south;
+          break;
+        case (south) :
+          cur.y--;
+          lastMoveOpposite = north;
+          break;
+        case (west) :
+          cur.x--;
+          lastMoveOpposite = east;
+          break;
+        case (east) :
+          cur.x++;
+          lastMoveOpposite = west;
+          break;
+        }
         
       if (cur.x == current.x && cur.y == current.y) {
         return lastMoveOpposite;

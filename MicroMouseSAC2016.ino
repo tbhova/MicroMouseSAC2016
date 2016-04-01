@@ -30,7 +30,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
   attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ZUMO_BUTTON), buttonUpdate, CHANGE);
-  
+
+  Serial.begin(9600);
   
   /*frontSensor = new NewPing(frontTP, frontEP, 18);
   leftSensor = new NewPing(leftTP, leftEP, 18);
@@ -49,6 +50,23 @@ void loop() {
   
   //get mouse position
   Position currentPosition = mouse->getPosition();
+  Serial.print(currentPosition.x);
+  Serial.print(' ');
+  Serial.print(currentPosition.y);
+  switch (currentPosition.dir) {
+    case (north) :
+    Serial.println(" N");
+    break;
+    case (south) :
+    Serial.println(" S");
+    break;
+    case (west) :
+    Serial.println(" W");
+    break;
+    case (east) :
+    Serial.println(" E");
+    break;
+  }
   
   //get new direction from maze and have mouse move there (maze handles optimal route)
   mouse->moveTo(maze->getDirection(currentPosition), maze->allCellsVisited());
