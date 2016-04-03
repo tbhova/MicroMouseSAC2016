@@ -1,8 +1,8 @@
 #include "Hardware.h"
 #include "globals.h"
 
-unsigned int LeftEncoderCount;
-unsigned int RightEncoderCount;
+unsigned int leftEncoderCount;
+unsigned int rightEncoderCount;
 /*Motors::Motors() {
   
 }
@@ -23,17 +23,17 @@ Gyroscope::Gyroscope() {
 
 //left encoder ISR0
 void leftEncoderUpdate() {
-  //leftEncoderCount++;
+  leftEncoderCount++;
 }
 
 //right encoder ISR
 void rightEncoderUpdate() {
-  //rightEncoderCount++;
+  rightEncoderCount++;
 }
 
 void resetEncoders() {
-//  leftEncoderCount = 0;
-  //rightEncoderCount = 0;
+  leftEncoderCount = 0;
+  rightEncoderCount = 0;
 }
 
 void buttonUpdate() {

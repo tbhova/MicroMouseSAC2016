@@ -17,6 +17,7 @@ namespace hova {
     unsigned int getEncoderDistance();
     
     bool isWall(const Cardinal &dir) const;
+    void discoverWalls();
 
     Position getPosition() const;
     
@@ -24,7 +25,6 @@ namespace hova {
     void updateDirection(const Cardinal &desired);
     void moveForwardOneCell();
     void turn90(const bool right = false);
-    void discoverWalls();
     
     Position CurrentPosition; //mouse xy coordinates
     char wallsSeen; //last 4 bits are whether the mouse saw those walls

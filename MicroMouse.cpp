@@ -40,7 +40,7 @@ unsigned int MicroMouse::getEncoderDistance() {
 }
 
 void MicroMouse::updateDirection(const Cardinal &desired) {
-  unsigned char delta = desired - CurrentPosition.dir;
+  char delta = desired - CurrentPosition.dir;
   //return early if we are going strait
   if (delta == 0)
     return;
@@ -71,19 +71,22 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
 }
 
 void MicroMouse::turn90(bool right) {
-  #define turnSpeed 300
+  const short unsigned int turnSpeed = 300;
+  const byte turnArch = 7; //68 * 12 / 120
+
+  resetEncoders();
   
   char dir = 1;
   if (right)
     dir = -1;
   motors.setSpeeds(turnSpeed*dir, -turnSpeed*dir);
 
-  #warning //bad
-  delay(350);
+  //#warning //bad
+  //delay(350);
   
-  while(true) {
+  while(this->getEncoderDistance() < turnArch) {
     //process encoders and update motor speeds
-    break;
+    //break;
   }
   motors.setSpeeds(0, 0);
   resetEncoders();
@@ -91,38 +94,97 @@ void MicroMouse::turn90(bool right) {
 
 void MicroMouse::moveForwardOneCell() {
   #define forwardSpeed 400
+  resetEncoders();
   motors.setSpeeds(forwardSpeed, forwardSpeed);
 
-  #warning bad
-  delay(500);
-  #define encoderPulsesPerCell 400
+  //#warning bad
+  //delay(500);
+  //120.5743 mm per rev
+  #define encoderPulsesPerCell 18 //(180/120.5743)*12
+  
   
   unsigned int distance = 0;
   while(distance < encoderPulsesPerCell) {
     distance = getEncoderDistance();
 
+    #warning //detect wall edge and use as landmark for centering
+    
     //PID Follow Wall Code (take median of 3 readings)
-
-    //detect wall edge and use as landmark for centering
-    break;
+    #warning //makesure there is no wall in front of us
+    #define isLeftWall  102
+    #define isRightWall 102
+    #define isFrontWall 102
+    #define lTargetDist 220
+    #define rTargetDist 220
+    #define lTargetSpeed 400
+    #define rTargetSpeed 400
+    #define loopTime 2
+    #define Kp 0.4
+    #define Kd 0.2
+    static unsigned long oldMillis = 0;
+    if (oldMillis + loopTime <= millis()) {
+      oldMillis = millis();
+      
+      short unsigned int rWall = analogRead(rightIRSensor); 
+      short unsigned int lWall = analogRead(leftIRSensor);
+      //short unsigned int fWall = analogRead(frontIRSensor);
+      //try to eliminate some of these variables
+      int errorP, errorD, totalError;
+      static int oldErrorP = 0;
+      
+      if (rWall >= isRightWall && lWall >= isLeftWall) {
+        //if right and left wall
+        //Serial.print("both ");
+        
+        errorP = rWall - lWall;
+        errorD = errorP - oldErrorP;
+      } else if (rWall >= isRightWall) {
+        //else if right wall
+        //Serial.print("right ");
+    
+        errorP = 2 * (rWall - rTargetDist);
+        errorD = errorP - oldErrorP;
+      } else if (lWall >= isLeftWall) {
+        //else if left wall
+        //Serial.print("left ");
+    
+        errorP = 2 * (lTargetDist - lWall);
+        errorD = errorP - oldErrorP;
+      } else {
+        //else dead reckoning
+        //Serial.print("dead ");
+        errorP = 0;
+        errorD = 0;
+      }
+    
+      totalError = Kp * errorP + Kd * errorD;
+      oldErrorP = errorP;
+      /*Serial.print(lWall);
+      Serial.print(' ');
+      Serial.print(rWall);
+      Serial.print(' ');
+      Serial.println(totalError);*/
+    
+      motors.setSpeeds(lTargetSpeed + totalError, rTargetSpeed - totalError);
+    } 
   }
   motors.setSpeeds(0, 0);
   resetEncoders();
 }
 
 void MicroMouse::discoverWalls() {
-  #define isWallPresent 500
+  #define isWallPresent 105
   
   wallsSeen = 0; //reset all bits
   
   //get median of 5 readings for each wall
   //back wall is certainly open so only process 3 front walls
-  //if (frontSensor->ping() > isWallPresent) {
-  /*if (analogRead(frontIRSensor) > isWallPresent) {
+  //if (frontSensor->ping() < isWallPresent) {
+  if (analogRead(frontIRSensor) > isWallPresent) {
     wallsSeen |= (1 << CurrentPosition.dir);
   }
   //if (leftSensor->ping() < isWallPresent) {
-  if (analogRead(leftIRSensor) < isWallPresent) {
+  if (analogRead(leftIRSensor) > isWallPresent) {
     unsigned char wallDir = CurrentPosition.dir - 1;
     if (wallDir == 0)
       wallDir = 4;
@@ -134,7 +196,7 @@ void MicroMouse::discoverWalls() {
     if (wallDir == 5)
       wallDir = 1;
     wallsSeen |= (1 << wallDir);
-  }*/
+  }
 }
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {
