@@ -71,10 +71,10 @@ namespace hova {
 
     //select nearest undiscovered cell
     Position dest = findNearestUndiscoveredCell(pos);
-    Serial.print("dest ");
+    /*Serial.print("dest ");
     Serial.print(dest.x);
     Serial.print(" ");
-    Serial.println(dest.y);
+    Serial.println(dest.y);*/
     return directionToCell(dest, pos, bfsDisc);
   }
 
@@ -145,14 +145,14 @@ namespace hova {
   }
 
   Cardinal Maze::directionToCell(const Position &des, const Position &current, short unsigned int discovered[]) {
-    Serial.print("dir to ");
+   /* Serial.print("dir to ");
     Serial.print(des.x);
     Serial.print(' ');
     Serial.print(des.y);
     Serial.print(' ');
     Serial.print(current.x);
     Serial.print(' ');
-    Serial.println(current.y);
+    Serial.println(current.y);*/
     unsigned char whereFrom[16][16];
     for (byte i = 0; i < 16; i++) {
       for (byte j = 0; j < 16; j++) {
@@ -170,9 +170,9 @@ namespace hova {
     while(!queue.isEmpty()) {
       cur = queue.peek();
         
-      Serial.print(cur.x);
+      /*Serial.print(cur.x);
       Serial.print(' ');
-      Serial.println(cur.y);
+      Serial.println(cur.y);*/
       
       //go through adjacency list
       for (byte i = north; i <= west; i++) {
@@ -204,14 +204,14 @@ namespace hova {
           }
           if ((discovered[cur.x] & (1 << cur.y)) == 0) {
             whereFrom[cur.x][cur.y] = (unsigned char)opposite;
-            Serial.print("push cell ");
+           /* Serial.print("push cell ");
             Serial.print(cur.x);
             Serial.print(' ');
-            Serial.println(cur.y);
+            Serial.println(cur.y);*/
             queue.push(cur);
             //if we are at destination, stop
             if (cur.x == des.x && cur.y == des.y) {
-              Serial.println("BFS found");
+              //Serial.println("BFS found");
               //we are done, found our cell
               //empty the queue and break out of for loop
               cur = queue.pop();
@@ -264,7 +264,7 @@ namespace hova {
         return lastMoveOpposite;
       }
     }
-    Serial.println("Error BFS failed");
+    //Serial.println("Error BFS failed");
     return north;
   }
 

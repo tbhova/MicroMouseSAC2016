@@ -9,11 +9,11 @@
 #define rightEP 2
 #define rightTP 11 */
 
-#define frontIRSensor 5
-#define leftIRSensor 11
-#define rightIRSensor 2
-#define rightEncoder 7
-#define leftEncoder 3
+#define frontIRSensor A0
+#define leftIRSensor A4
+#define rightIRSensor A5
+#define rightEncoder 2
+#define leftEncoder 4
 
 #warning check pins
 

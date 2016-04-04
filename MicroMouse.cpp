@@ -6,7 +6,7 @@ using namespace hova;
 
 MicroMouse::MicroMouse(unsigned char corner) {
   //motors.flipLeftMotor(true);
-  motors.flipRightMotor(true);
+  //motors.flipRightMotor(true);
   
   switch (corner) {
   case 0: //initial corner (south west)
@@ -33,6 +33,7 @@ MicroMouse::MicroMouse(unsigned char corner) {
     CurrentPosition.x = 0;
     CurrentPosition.y = 0;
   }
+  //motors.setSpeeds(50,50);
 }
 
 unsigned int MicroMouse::getEncoderDistance() {
@@ -40,7 +41,9 @@ unsigned int MicroMouse::getEncoderDistance() {
 }
 
 void MicroMouse::updateDirection(const Cardinal &desired) {
-  char delta = desired - CurrentPosition.dir;
+  char delta = (char)desired - (char)CurrentPosition.dir;
+  Serial.print("d ");
+  Serial.println((int)delta);
   //return early if we are going strait
   if (delta == 0)
     return;
@@ -60,6 +63,7 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
   if (delta > 0) {
     for (byte i = 0; i < delta; i++) {
       //turn left
+      Serial.println("L");
       turn90();
     }
   } else if (delta < 0) {
@@ -84,7 +88,7 @@ void MicroMouse::turn90(bool right) {
   //#warning //bad
   //delay(350);
   
-  while(this->getEncoderDistance() < turnArch) {
+  while(/*this->getEncoderDistance()*/ rightEncoderCount < turnArch) {
     //process encoders and update motor speeds
     //break;
   }
@@ -93,6 +97,7 @@ void MicroMouse::turn90(bool right) {
 }
 
 void MicroMouse::moveForwardOneCell() {
+  Serial.println("Forward");
   #define forwardSpeed 400
   resetEncoders();
   motors.setSpeeds(forwardSpeed, forwardSpeed);
@@ -102,11 +107,11 @@ void MicroMouse::moveForwardOneCell() {
   //120.5743 mm per rev
   #define encoderPulsesPerCell 18 //(180/120.5743)*12
   
-  
-  unsigned int distance = 0;
-  while(distance < encoderPulsesPerCell) {
-    distance = getEncoderDistance();
-
+  while(/*getEncoderDistance()*/ rightEncoderCount < encoderPulsesPerCell) {
+    Serial.print("r ");
+    Serial.print(rightEncoderCount);
+    Serial.print(' ');
+    Serial.println(encoderPulsesPerCell);
     #warning //detect wall edge and use as landmark for centering
     
     //PID Follow Wall Code (take median of 3 readings)
@@ -200,8 +205,11 @@ void MicroMouse::discoverWalls() {
 }
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {
+  Serial.println("1");
   this->updateDirection(dir);
+  Serial.println("2");
   this->moveForwardOneCell();
+  Serial.println("3");
   
   if (!mazeDiscovered) {  
       this->discoverWalls();

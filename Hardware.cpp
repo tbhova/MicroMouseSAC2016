@@ -23,11 +23,15 @@ Gyroscope::Gyroscope() {
 
 //left encoder ISR0
 void leftEncoderUpdate() {
+  //Serial.println("L enc ");
+  //Serial.println(leftEncoderCount);
   leftEncoderCount++;
 }
 
 //right encoder ISR
 void rightEncoderUpdate() {
+  //Serial.print("R enc ");
+  //Serial.println(rightEncoderCount);
   rightEncoderCount++;
 }
 
