@@ -27,8 +27,12 @@ void setup() {
   pinMode(leftEncoder, INPUT);
 
   resetEncoders();
-  attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
+  pinMode(rightEncoder, INPUT);
+  //attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
   attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, CHANGE);
+  pinMode(leftEncoder, INPUT);
+  attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
+  
   attachInterrupt(digitalPinToInterrupt(ZUMO_BUTTON), buttonUpdate, CHANGE);
 
   Serial.begin(115200);
@@ -47,10 +51,21 @@ void setup() {
 
   maze->cellVisited(0, 0);
   mouse->discoverWalls();
+
+  Position currentPosition = mouse->getPosition();
+  //update walls
+  for (unsigned char i = north; i <= west; i++) {
+    if (mouse->isWall((Cardinal)i))
+      maze->placeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
+  }
+  mouse->motors.setSpeeds(200,200);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  //while(!started)
+    //mouse->motors.setSpeeds(0, 0);
   
   //get mouse position
   Position currentPosition = mouse->getPosition();
@@ -76,11 +91,11 @@ void loop() {
   Serial.println();
   //get new direction from maze and have mouse move there (maze handles optimal route)
   mouse->moveTo(maze->getDirection(currentPosition), maze->allCellsVisited());
-  
-  if (!maze->allCellsVisited()) {
-    //update current position with mouse's new position
-    currentPosition = mouse->getPosition();
+
+  //update current position with mouse's new position
+  currentPosition = mouse->getPosition();
     
+  if (!maze->allCellsVisited()) {
     //state we visited this cell
     maze->cellVisited(currentPosition.x, currentPosition.y);
     

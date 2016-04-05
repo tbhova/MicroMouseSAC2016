@@ -16,14 +16,14 @@ namespace hova {
 
 static bool started = false;
 
-Gyroscope::Gyroscope() {
+/*Gyroscope::Gyroscope() {
   
-}
+}*/
 
 
 //left encoder ISR0
 void leftEncoderUpdate() {
-  //Serial.println("L enc ");
+  //Serial.print("L enc ");
   //Serial.println(leftEncoderCount);
   leftEncoderCount++;
 }
@@ -42,17 +42,16 @@ void resetEncoders() {
 
 void buttonUpdate() {
   //reset mouse position in maze, stop motors
+
   static bool down = false;
   if (button.isPressed()) {
+    Serial.println("button pressed");
     down = true;
-    if (started) {
-      started = false;
-    }
   }
   else if (!button.isPressed() && down) {
+    Serial.println("button released");
     down = false;
-    if(!started)
-      started = true;
+    started = !started;
   }
 }
 }

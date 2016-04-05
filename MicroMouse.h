@@ -20,6 +20,7 @@ namespace hova {
     void discoverWalls();
 
     Position getPosition() const;
+    ZumoMotors motors;
     
     private:
     void updateDirection(const Cardinal &desired);
@@ -31,7 +32,6 @@ namespace hova {
     
     //hardware
     //Motors *motors;
-    ZumoMotors motors;
     
 //    Encoders encoders;
   };

@@ -9,11 +9,11 @@
 #define rightEP 2
 #define rightTP 11 */
 
-#define frontIRSensor A0
-#define leftIRSensor A4
-#define rightIRSensor A5
+#define frontIRSensor A3
+#define leftIRSensor A0
+#define rightIRSensor A1
 #define rightEncoder 2
-#define leftEncoder 4
+#define leftEncoder 3
 
 #warning check pins
 
@@ -34,12 +34,12 @@ class IRSensorArray {
   private:
 };*/
 
-class Gyroscope {
+/*class Gyroscope {
   public:
   Gyroscope();
 
   private:
-};
+};*/
 
 //left encoder ISR
 void leftEncoderUpdate();
