@@ -41,10 +41,10 @@ unsigned int MicroMouse::getEncoderDistance() {
 }
 
 void MicroMouse::updateDirection(const Cardinal &desired) {
-  Serial.print("desired ");
+  /*Serial.print("desired ");
   Serial.print(desired);
   Serial.print(" cur ");
-  Serial.println(CurrentPosition.dir);
+  Serial.println(CurrentPosition.dir);*/
   char delta = (char)desired - (char)CurrentPosition.dir;
   //return early if we are going strait
   if (delta == 0)
@@ -61,7 +61,6 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
   } else if (delta > 0) {
     for (byte i = 0; i < delta; i++) {
       //turn left
-      Serial.println("L");
       turn90();
     }
   } else if (delta < 0) {
@@ -79,8 +78,13 @@ void MicroMouse::turn90(bool right) {
   resetEncoders();
   
   char dir = 1;
-  if (right)
+  Serial.print("Turn ");
+  if (right) {
     dir = -1;
+    Serial.println("right");
+  } else {
+    Serial.println("left");
+  }
   motors.setSpeeds(turnSpeed*dir, -turnSpeed*dir);
 
   //#warning //bad
@@ -89,20 +93,20 @@ void MicroMouse::turn90(bool right) {
   while(this->getEncoderDistance() < turnArch) {
     //process encoders and update motor speeds
     //break;
-    Serial.print("T ");
+    /*Serial.print("T ");
     Serial.print(rightEncoderCount);
     Serial.print(' ');
     Serial.println(turnArch);
-    rightEncoderCount++;
+    rightEncoderCount++;*/
   }
   motors.setSpeeds(0, 0);
   delay(2);
   resetEncoders();
 }
 
-#define isLeftWall  70
-#define isRightWall 100
-#define isFrontWall 140
+#define isLeftWall  325
+#define isRightWall 325
+#define isFrontWall 325
     
 void MicroMouse::moveForwardOneCell() {
   Serial.println("Forward");
@@ -139,13 +143,13 @@ void MicroMouse::moveForwardOneCell() {
       //try to eliminate some of these variables
       int errorP, errorD, totalError = 0;
       static int oldErrorP = 0;
-      Serial.print("f ");
+      /*Serial.print("f ");
       Serial.print(fWall);
       Serial.print(" l ");
       Serial.print(lWall);
       Serial.print(" r" );
       Serial.println(rWall);
-      delay(500);
+      delay(5);*/
       if (rWall >= isRightWall && lWall >= isLeftWall) {
         //if right and left wall
         //Serial.print("both ");
@@ -183,7 +187,7 @@ void MicroMouse::moveForwardOneCell() {
     } 
   }
   motors.setSpeeds(0, 0);
-  delay(8);
+  delay(500);
   resetEncoders();
 }
 
@@ -191,22 +195,25 @@ void MicroMouse::discoverWalls() {
   //#define isWallPresent 115
   
   wallsSeen = 0; //reset all bits
-  
+  Serial.print("Add walls ");
   //get median of 5 readings for each wall
   //back wall is certainly open so only process 3 front walls
   //if (frontSensor->ping() < isWallPresent) {
   if (analogRead(frontIRSensor) > isRightWall) {
+    Serial.print("front ");
     wallsSeen |= (1 << CurrentPosition.dir);
   }
   //if (leftSensor->ping() < isWallPresent) {
   if (analogRead(leftIRSensor) > isLeftWall) {
+    Serial.print("left ");
     unsigned char wallDir = CurrentPosition.dir - 1;
     if (wallDir == 0)
       wallDir = 4;
     wallsSeen |= (1 << wallDir);
   }
   //if (rightSensor->ping() < isWallPresent) {
-  if (analogRead(rightIRSensor) < isRightWall) {
+  if (analogRead(rightIRSensor) > isRightWall) {
+    Serial.print("right ");
     unsigned char wallDir = CurrentPosition.dir + 1;
     if (wallDir == 5)
       wallDir = 1;
@@ -215,11 +222,8 @@ void MicroMouse::discoverWalls() {
 }
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {
-  Serial.println("1");
   this->updateDirection(dir);
-  Serial.println("2");
   this->moveForwardOneCell();
-  Serial.println("3");
   
   if (!mazeDiscovered) {  
       this->discoverWalls();
