@@ -24,7 +24,7 @@ namespace hova {
     
     private:
     void updateDirection(const Cardinal &desired);
-    void moveForwardOneCell();
+    bool moveForwardOneCell();
     void turn90(const bool right = false);
     
     Position CurrentPosition; //mouse xy coordinates

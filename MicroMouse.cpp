@@ -99,22 +99,23 @@ void MicroMouse::turn90(bool right) {
   resetEncoders();
 }
 
-#define isLeftWall  325
-#define isRightWall 325
-#define isFrontWall 325
+#define isLeftWall  300
+#define isRightWall 300
+#define isFrontWall 300
     
-void MicroMouse::moveForwardOneCell() {
+bool MicroMouse::moveForwardOneCell() {
   Serial.println("Forward");
   #define forwardSpeed 400
   resetEncoders();
   //motors.setSpeeds(forwardSpeed, forwardSpeed);
 
+  byte forwardError = 0;
   //#warning bad
   //delay(500);
   //120.5743 mm per rev
   #define encoderPulsesPerCell 18 //(180/120.5743)*12
-  
-  while(getEncoderDistance() < encoderPulsesPerCell) {
+  bool frontWallPresent = false;
+  while(getEncoderDistance() < encoderPulsesPerCell && !frontWallPresent) {
     /*Serial.print("r ");
     Serial.print(rightEncoderCount);
     Serial.print(' ');
@@ -123,11 +124,13 @@ void MicroMouse::moveForwardOneCell() {
     
     //PID Follow Wall Code (take median of 3 readings)
     #warning //makesure there is no wall in front of us
-    #define lTargetDist 190
-    #define rTargetDist 190
+    #define lTargetDist 375
+    #define rTargetDist 375
     #define loopTime 2
     #define Kp 0.4
     #define Kd 0.2
+    #define frontStoppingDistance 400
+    
     static unsigned long oldMillis = 0;
     if (oldMillis + loopTime <= millis()) {
       oldMillis = millis();
@@ -135,7 +138,17 @@ void MicroMouse::moveForwardOneCell() {
       short unsigned int rWall = analogRead(rightIRSensor); 
       short unsigned int lWall = analogRead(leftIRSensor);
       short unsigned int fWall = analogRead(frontIRSensor);
-      //try to eliminate some of these variables
+
+      //check for front wall (landmark) and stop if found
+      if (fWall > frontStoppingDistance) {
+        forwardError++;
+        if (forwardError > 2) { //if we have have seen at least 3 readings with the front wall present
+          frontWallPresent = true;
+          break; //stop loop
+        }
+      }
+      
+      #warning //try to eliminate some of these variables
       int errorP, errorD, totalError = 0;
       static int oldErrorP = 0;
       /*Serial.print("f ");
@@ -183,7 +196,12 @@ void MicroMouse::moveForwardOneCell() {
   }
   motors.setSpeeds(0, 0);
   delay(500);
+  bool ret = true;
+  //determine whether we moved forward one cell
+  if(frontWallPresent && getEncoderDistance() < encoderPulsesPerCell/3)
+    ret = false;
   resetEncoders();
+  return ret;
 }
 
 void MicroMouse::discoverWalls() {
@@ -219,26 +237,28 @@ void MicroMouse::discoverWalls() {
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {
   this->updateDirection(dir);
-  this->moveForwardOneCell();
+  bool forwardSuccessful = this->moveForwardOneCell();
   
   if (!mazeDiscovered) {  
       this->discoverWalls();
   }
-  
-  //update coordinates
-  switch (dir) {
-    case north:
-      CurrentPosition.y++;
-      break;
-    case south:
-      CurrentPosition.y--;
-      break;
-    case west:
-      CurrentPosition.x--;
-      break;
-    case east:
-      CurrentPosition.x++;
-      break;
+
+  if (forwardSuccessful) {
+    //update coordinates
+    switch (dir) {
+      case north:
+        CurrentPosition.y++;
+        break;
+      case south:
+        CurrentPosition.y--;
+        break;
+      case west:
+        CurrentPosition.x--;
+        break;
+      case east:
+        CurrentPosition.x++;
+        break;
+    }
   }
 }
 
