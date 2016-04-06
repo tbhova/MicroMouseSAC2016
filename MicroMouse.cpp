@@ -60,20 +60,20 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
     turn90(true);
   } else if (delta > 0) {
     for (byte i = 0; i < delta; i++) {
-      //turn left
-      turn90();
+      //turn right
+      turn90(true);
     }
   } else if (delta < 0) {
     for (byte i = 0; i < -delta; i++) {
-      //turn right
-      turn90(true);
+      //turn left
+      turn90();
     }
   }
 }
 
 void MicroMouse::turn90(bool right) {
   const short unsigned int turnSpeed = 300;
-  const byte turnArch = 7; //68 * 12 / 120   68mm turn radius, 12 encoder pulses per 120mm of movement
+  const byte turnArch = 16; //68 * 12 / 120   68mm turn radius, 12 encoder pulses per 120mm of movement
 
   resetEncoders();
   
@@ -90,14 +90,9 @@ void MicroMouse::turn90(bool right) {
   //#warning //bad
   //delay(350);
   
-  while(this->getEncoderDistance() < turnArch) {
-    //process encoders and update motor speeds
-    //break;
-    /*Serial.print("T ");
-    Serial.print(rightEncoderCount);
-    Serial.print(' ');
-    Serial.println(turnArch);
-    rightEncoderCount++;*/
+  while(this->getEncoderDistance() < turnArch)  {
+    static byte i = 0;
+    i++;
   }
   motors.setSpeeds(0, 0);
   delay(2);
@@ -147,7 +142,7 @@ void MicroMouse::moveForwardOneCell() {
       Serial.print(fWall);
       Serial.print(" l ");
       Serial.print(lWall);
-      Serial.print(" r" );
+      Serial.print(" r ");
       Serial.println(rWall);
       delay(5);*/
       if (rWall >= isRightWall && lWall >= isLeftWall) {
@@ -219,6 +214,7 @@ void MicroMouse::discoverWalls() {
       wallDir = 1;
     wallsSeen |= (1 << wallDir);
   }
+  Serial.println();
 }
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {

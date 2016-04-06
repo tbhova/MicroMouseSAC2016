@@ -11,7 +11,7 @@
 
 #define frontIRSensor A0
 #define leftIRSensor A3
-#define rightIRSensor A0
+#define rightIRSensor A1
 #define rightEncoder 2
 #define leftEncoder 3
 

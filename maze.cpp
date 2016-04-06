@@ -115,7 +115,7 @@ namespace hova {
     }
     //look for cell
     for (byte i = 1; i < 15; i++) {
-      if(!((current.x + i == 7 || current.x + i ==8) && (current.y == 7 || current.y == 8)) && (current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
+      if(!((current.x + i == 7 || current.x + i == 8) && (current.y == 7 || current.y == 8)) && (current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
         current.x += i;
         return current;
       } /*else {
@@ -128,15 +128,15 @@ namespace hova {
         else
           Serial.println('F');
       }*/
-      if(!((current.x == 7 || current.x ==8) && (current.y + i == 7 || current.y + i == 8)) && (current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
+      if(!((current.x == 7 || current.x == 8) && (current.y + i == 7 || current.y + i == 8)) && (current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
         current.y += i;
         return current;
       }
-      if(!((current.x - i == 7 || current.x - i ==8) && (current.y == 7 || current.y == 8)) && (current.x - i >= 0) && !isCellVisited(current.x - i, current.y)) {
+      if(!((current.x - i == 7 || current.x - i == 8) && (current.y == 7 || current.y == 8)) && (current.x - i >= 0) && !isCellVisited(current.x - i, current.y)) {
         current.x -= i;
         return current;
       }
-      if(!((current.x == 7 || current.x ==8) && (current.y - i == 7 || current.y - i == 8)) && (current.y - i >= 0) && !isCellVisited(current.x, current.y-i)) {
+      if(!((current.x == 7 || current.x == 8) && (current.y - i == 7 || current.y - i == 8)) && (current.y - i >= 0) && !isCellVisited(current.x, current.y-i)) {
         current.y -= i;
         return current;
       }
@@ -145,14 +145,14 @@ namespace hova {
   }
 
   Cardinal Maze::directionToCell(const Position &des, const Position &current, short unsigned int discovered[]) {
-   /* Serial.print("dir to ");
+    Serial.print("dir to ");
     Serial.print(des.x);
     Serial.print(' ');
     Serial.print(des.y);
-    Serial.print(' ');
+    Serial.print(" from ");
     Serial.print(current.x);
     Serial.print(' ');
-    Serial.println(current.y);*/
+    Serial.println(current.y);
     unsigned char whereFrom[16][16];
     for (byte i = 0; i < 16; i++) {
       for (byte j = 0; j < 16; j++) {
@@ -261,10 +261,12 @@ namespace hova {
         }
         
       if (cur.x == current.x && cur.y == current.y) {
+        Serial.print("BFS direction is ");
+        Serial.println(lastMoveOpposite);
         return lastMoveOpposite;
       }
     }
-    //Serial.println("Error BFS failed");
+    Serial.println("Error BFS failed");
     return north;
   }
 
