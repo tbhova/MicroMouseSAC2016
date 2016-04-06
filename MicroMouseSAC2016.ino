@@ -101,8 +101,13 @@ void loop() {
     
     //update walls
     for (unsigned char i = north; i <= west; i++) {
-      if (mouse->isWall((Cardinal)i))
+      if (mouse->isWall((Cardinal)i)) {
         maze->placeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
+        Serial.print("place wall ");
+        Serial.print(i);
+        Serial.print(' ');
+      }
     }
+    Serial.println();
   }
 }

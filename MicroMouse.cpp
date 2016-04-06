@@ -73,7 +73,7 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
 
 void MicroMouse::turn90(bool right) {
   const short unsigned int turnSpeed = 300;
-  const byte turnArch = 16; //68 * 12 / 120   68mm turn radius, 12 encoder pulses per 120mm of movement
+  const byte turnArch = 8; //68 * 12 / 120   68mm turn radius, 12 encoder pulses per 120mm of movement
 
   resetEncoders();
   
@@ -85,7 +85,7 @@ void MicroMouse::turn90(bool right) {
   } else {
     Serial.println("left");
   }
-  motors.setSpeeds(turnSpeed*dir, -turnSpeed*dir);
+  motors.setSpeeds(-turnSpeed*dir, turnSpeed*dir);
 
   //#warning //bad
   //delay(350);
@@ -113,7 +113,7 @@ bool MicroMouse::moveForwardOneCell() {
   //#warning bad
   //delay(500);
   //120.5743 mm per rev
-  #define encoderPulsesPerCell 18 //(180/120.5743)*12
+  #define encoderPulsesPerCell 20 //(180/120.5743)*12
   bool frontWallPresent = false;
   while(getEncoderDistance() < encoderPulsesPerCell && !frontWallPresent) {
     /*Serial.print("r ");
@@ -124,11 +124,11 @@ bool MicroMouse::moveForwardOneCell() {
     
     //PID Follow Wall Code (take median of 3 readings)
     #warning //makesure there is no wall in front of us
-    #define lTargetDist 375
-    #define rTargetDist 375
-    #define loopTime 2
-    #define Kp 0.4
-    #define Kd 0.2
+    #define lTargetDist 450
+    #define rTargetDist 450
+    #define loopTime 1
+    #define Kp 0.5
+    #define Kd 0.8
     #define frontStoppingDistance 400
     
     static unsigned long oldMillis = 0;
@@ -151,13 +151,13 @@ bool MicroMouse::moveForwardOneCell() {
       #warning //try to eliminate some of these variables
       int errorP, errorD, totalError = 0;
       static int oldErrorP = 0;
-      /*Serial.print("f ");
+      Serial.print("f ");
       Serial.print(fWall);
       Serial.print(" l ");
       Serial.print(lWall);
       Serial.print(" r ");
       Serial.println(rWall);
-      delay(5);*/
+      delay(2);
       if (rWall >= isRightWall && lWall >= isLeftWall) {
         //if right and left wall
         //Serial.print("both ");
@@ -191,7 +191,7 @@ bool MicroMouse::moveForwardOneCell() {
       Serial.print(' ');
       Serial.println(totalError);*/
       
-      motors.setSpeeds(forwardSpeed + totalError, forwardSpeed - totalError);
+      motors.setSpeeds(forwardSpeed - totalError, forwardSpeed + totalError);
     } 
   }
   motors.setSpeeds(0, 0);
