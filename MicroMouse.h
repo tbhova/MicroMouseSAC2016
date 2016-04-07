@@ -21,6 +21,8 @@ namespace hova {
 
     Position getPosition() const;
     ZumoMotors motors;
+
+    void calibratePosition();
     
     private:
     void updateDirection(const Cardinal &desired);

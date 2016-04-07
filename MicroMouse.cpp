@@ -269,3 +269,45 @@ bool MicroMouse::isWall(const Cardinal &dir) const{
 Position MicroMouse::getPosition() const{
   return CurrentPosition;
 }
+
+void MicroMouse::calibratePosition() {
+  const byte rearCalDist = 650, sideCalDist = 570, calMotorSpeed = 225;
+  
+  byte currentWalls = 0;
+
+  //for 0 to 3 (3 turns, 360*)
+  for (byte  i = 0; i < 4; i++) {
+    //discover walls
+    this->discoverWalls();
+    //find direction behind us
+    Cardinal opposite;
+      if (CurrentPosition.dir <= east) {
+        opposite = (Cardinal)((byte)CurrentPosition.dir + 2);
+      } else {
+        opposite = (Cardinal)((byte)CurrentPosition.dir - 2);
+      }
+    for (byte j = north; j <= west; j++) {
+      //check all dir but opposite
+      if ((Cardinal)j == opposite)
+        continue;
+      
+      //add/remove walls
+      if (isWall((Cardinal)j)) {
+        currentWalls |= (1 << j);
+      } else {
+        currentWalls &= ((1 << Cardinal(j)) ^ 0x0F);
+      }
+
+      //if wall in front, move slightly to it
+      if (isWall(CurrentPosition.dir)) {
+        
+      }
+    }
+  }
+  //calibrate rear
+
+  //else if no rear, calibrate front
+
+  //calibrate both sides if exist
+  
+}

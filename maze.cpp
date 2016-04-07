@@ -29,6 +29,8 @@ namespace hova {
   }
 
   bool Maze::allCellsVisited() {
+    #warning add count cells visited and if number is small enough, set cells with 4 walls to visited (watch for big enclosed areas)
+    
     static bool allVisited = false;
     if (allVisited)
       return allVisited;
