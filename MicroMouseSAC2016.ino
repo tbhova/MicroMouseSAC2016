@@ -28,10 +28,9 @@ void setup() {
 
   resetEncoders();
   pinMode(rightEncoder, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, RISING);
   pinMode(leftEncoder, INPUT);
-  attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, RISING);
   
   attachInterrupt(digitalPinToInterrupt(ZUMO_BUTTON), buttonUpdate, CHANGE);
 

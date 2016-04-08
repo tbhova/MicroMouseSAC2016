@@ -72,8 +72,8 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
 }
 
 void MicroMouse::turn90(bool right) {
-  const short unsigned int turnSpeed = 300;
-  const byte turnArch = 8; //68 * 12 / 120   68mm turn radius, 12 encoder pulses per 120mm of movement
+  const short unsigned int leftTurnSpeed = 312, rightTurnSpeed = 250;
+  const short unsigned int turnArch = 164;
 
   resetEncoders();
   
@@ -85,17 +85,16 @@ void MicroMouse::turn90(bool right) {
   } else {
     Serial.println("left");
   }
-  motors.setSpeeds(-turnSpeed*dir, turnSpeed*dir);
-
-  //#warning //bad
-  //delay(350);
+  motors.setSpeeds(-leftTurnSpeed*dir, rightTurnSpeed*dir);
   
   while(this->getEncoderDistance() < turnArch)  {
     static byte i = 0;
     i++;
   }
   motors.setSpeeds(0, 0);
-  delay(2);
+  Serial.print("Encoder pules ");
+  Serial.println(getEncoderDistance());
+  delay(500);
   resetEncoders();
 }
 
@@ -105,15 +104,15 @@ void MicroMouse::turn90(bool right) {
     
 bool MicroMouse::moveForwardOneCell() {
   Serial.println("Forward");
-  #define forwardSpeed 400
+  #define leftSpeed 375
+  #define rightSpeed 300
   resetEncoders();
   //motors.setSpeeds(forwardSpeed, forwardSpeed);
 
   byte forwardError = 0;
-  //#warning bad
-  //delay(500);
+  
   //120.5743 mm per rev
-  #define encoderPulsesPerCell 20 //(180/120.5743)*12
+  #define encoderPulsesPerCell 339
   bool frontWallPresent = false;
   while(getEncoderDistance() < encoderPulsesPerCell && !frontWallPresent) {
     /*Serial.print("r ");
@@ -121,14 +120,12 @@ bool MicroMouse::moveForwardOneCell() {
     Serial.print(' ');
     Serial.println(encoderPulsesPerCell);*/
     #warning //detect wall edge and use as landmark for centering
-    
-    //PID Follow Wall Code (take median of 3 readings)
     #warning //makesure there is no wall in front of us
-    #define lTargetDist 450
-    #define rTargetDist 450
+    #define lTargetDist 550
+    #define rTargetDist 550
     #define loopTime 1
-    #define Kp 0.5
-    #define Kd 0.8
+    #define Kp 0.4
+    #define Kd 0.32
     #define frontStoppingDistance 400
     
     static unsigned long oldMillis = 0;
@@ -144,20 +141,19 @@ bool MicroMouse::moveForwardOneCell() {
         forwardError++;
         if (forwardError > 2) { //if we have have seen at least 3 readings with the front wall present
           frontWallPresent = true;
-          break; //stop loop
+          break; //s-top loop
         }
       }
       
       #warning //try to eliminate some of these variables
       int errorP, errorD, totalError = 0;
       static int oldErrorP = 0;
-      Serial.print("f ");
+      /*Serial.print("f ");
       Serial.print(fWall);
       Serial.print(" l ");
       Serial.print(lWall);
       Serial.print(" r ");
-      Serial.println(rWall);
-      delay(2);
+      Serial.println(rWall);*/
       if (rWall >= isRightWall && lWall >= isLeftWall) {
         //if right and left wall
         //Serial.print("both ");
@@ -191,14 +187,16 @@ bool MicroMouse::moveForwardOneCell() {
       Serial.print(' ');
       Serial.println(totalError);*/
       
-      motors.setSpeeds(forwardSpeed - totalError, forwardSpeed + totalError);
+      motors.setSpeeds(leftSpeed - totalError, rightSpeed + totalError);
     } 
   }
   motors.setSpeeds(0, 0);
+  Serial.print("Encoder pules ");
+  Serial.println(getEncoderDistance());
   delay(500);
   bool ret = true;
   //determine whether we moved forward one cell
-  if(frontWallPresent && getEncoderDistance() < encoderPulsesPerCell/3)
+  if(frontWallPresent && getEncoderDistance() < (encoderPulsesPerCell/3))
     ret = false;
   resetEncoders();
   return ret;
@@ -271,7 +269,8 @@ Position MicroMouse::getPosition() const{
 }
 
 void MicroMouse::calibratePosition() {
-  const byte rearCalDist = 650, sideCalDist = 570, calMotorSpeed = 225;
+  const byte rearCalDist = 600, sideCalDist = 570, roughCalDist = 500;
+  const Cardinal origDir = CurrentPosition.dir;
   
   byte currentWalls = 0;
 
@@ -302,6 +301,15 @@ void MicroMouse::calibratePosition() {
       if (isWall(CurrentPosition.dir)) {
         
       }
+      byte rDir = (byte)origDir + 1;
+      rDir = (rDir > 4) ? 1 : rDir;
+      
+      if (isWall((Cardinal)rDir) {
+        this->updateDir((Cardinal)rDir);
+        
+
+        
+      }
     }
   }
   //calibrate rear
@@ -309,5 +317,16 @@ void MicroMouse::calibratePosition() {
   //else if no rear, calibrate front
 
   //calibrate both sides if exist
-  
+
+  void calForwardWall() {
+    resetEncoders();
+    motors.setSpeeds(leftTurnSpeed, rightTurnSpeed);
+    while(analogRead(fIRSensor) < roughCalDist && getEncoderDist < encoderPulsesPerCell/2) {
+      byte i = 0;
+      i++;
+    }
+    motors.setSpeeds(0,0);
+    delay(500);
+    resetEncoders();
+  }
 }

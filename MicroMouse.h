@@ -1,8 +1,5 @@
 #pragma once
 
-//#ifndef mouse_h
-//#define mouse_h
-
 #include "DataTypes.h"
 #include "Hardware.h"
 #include <ZumoMotors.h>
@@ -31,12 +28,6 @@ namespace hova {
     
     Position CurrentPosition; //mouse xy coordinates
     char wallsSeen; //last 4 bits are whether the mouse saw those walls
-    
-    //hardware
-    //Motors *motors;
-    
-//    Encoders encoders;
   };
 }
 
-//#endif

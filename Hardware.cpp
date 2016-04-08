@@ -3,35 +3,22 @@
 
 unsigned int leftEncoderCount;
 unsigned int rightEncoderCount;
-/*Motors::Motors() {
-  
-}
-
-
-IRSensorArray::IRSensorArray() {
-  
-}*/
 
 namespace hova {
 
 static bool started = false;
 
-/*Gyroscope::Gyroscope() {
-  
-}*/
-
-
-//left encoder ISR0
+//left encoder ISR
 void leftEncoderUpdate() {
-  Serial.print("L enc ");
-  Serial.println(leftEncoderCount);
+  //Serial.print("L enc ");
+  //Serial.println(leftEncoderCount);
   leftEncoderCount++;
 }
 
 //right encoder ISR
 void rightEncoderUpdate() {
-  Serial.print("R enc ");
-  Serial.println(rightEncoderCount);
+  //Serial.print("R enc ");
+  //Serial.println(rightEncoderCount);
   rightEncoderCount++;
 }
 
