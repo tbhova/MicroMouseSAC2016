@@ -7,6 +7,8 @@ using namespace hova;
 MicroMouse::MicroMouse(unsigned char corner) {
   //motors.flipLeftMotor(true);
   motors.flipRightMotor(true);
+
+  cellsSinceCal = 0;
   
   switch (corner) {
   case 0: //initial corner (south west)
@@ -71,10 +73,9 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
   }
 }
 
+const short unsigned int leftTurnSpeed = 260, rightTurnSpeed = 250;
+const byte turnArch = 152;
 void MicroMouse::turn90(bool right) {
-  const short unsigned int leftTurnSpeed = 312, rightTurnSpeed = 250;
-  const short unsigned int turnArch = 164;
-
   resetEncoders();
   
   char dir = 1;
@@ -88,13 +89,14 @@ void MicroMouse::turn90(bool right) {
   motors.setSpeeds(-leftTurnSpeed*dir, rightTurnSpeed*dir);
   
   while(this->getEncoderDistance() < turnArch)  {
+    //Serial.println((int)rightEncoderCount - (int)leftEncoderCount);
     static byte i = 0;
     i++;
   }
   motors.setSpeeds(0, 0);
-  Serial.print("Encoder pules ");
-  Serial.println(getEncoderDistance());
-  delay(500);
+  //Serial.print("Encoder pules ");
+  //Serial.println(getEncoderDistance());
+  delay(75);
   resetEncoders();
 }
 
@@ -191,19 +193,25 @@ bool MicroMouse::moveForwardOneCell() {
     } 
   }
   motors.setSpeeds(0, 0);
-  Serial.print("Encoder pules ");
-  Serial.println(getEncoderDistance());
-  delay(500);
+  //Serial.print("Encoder pules ");
+  //Serial.println(getEncoderDistance());
+  delay(75);
   bool ret = true;
   //determine whether we moved forward one cell
-  if(frontWallPresent && getEncoderDistance() < (encoderPulsesPerCell/3))
+  if(frontWallPresent && getEncoderDistance() < (encoderPulsesPerCell/3)) {
     ret = false;
+    cellsSinceCal = 5; // force cal
+  }
+  else
+    cellsSinceCal++;
   resetEncoders();
   return ret;
 }
 
 void MicroMouse::discoverWalls() {
   //#define isWallPresent 115
+  bool front = false;
+  byte walls = 0;
   
   wallsSeen = 0; //reset all bits
   Serial.print("Add walls ");
@@ -213,6 +221,8 @@ void MicroMouse::discoverWalls() {
   if (analogRead(frontIRSensor) > isRightWall) {
     Serial.print("front ");
     wallsSeen |= (1 << CurrentPosition.dir);
+    front = true;
+    walls++;
   }
   //if (leftSensor->ping() < isWallPresent) {
   if (analogRead(leftIRSensor) > isLeftWall) {
@@ -221,6 +231,7 @@ void MicroMouse::discoverWalls() {
     if (wallDir == 0)
       wallDir = 4;
     wallsSeen |= (1 << wallDir);
+    walls++;
   }
   //if (rightSensor->ping() < isWallPresent) {
   if (analogRead(rightIRSensor) > isRightWall) {
@@ -229,8 +240,13 @@ void MicroMouse::discoverWalls() {
     if (wallDir == 5)
       wallDir = 1;
     wallsSeen |= (1 << wallDir);
+    walls++;
   }
   Serial.println();
+
+  if(front && walls >=2 && cellsSinceCal >= 5) {
+    calForwardWall();
+  }
 }
 
 void MicroMouse::moveTo(const Cardinal &dir, const bool mazeDiscovered) {
@@ -267,66 +283,110 @@ bool MicroMouse::isWall(const Cardinal &dir) const{
 Position MicroMouse::getPosition() const{
   return CurrentPosition;
 }
-
-void MicroMouse::calibratePosition() {
-  const byte rearCalDist = 600, sideCalDist = 570, roughCalDist = 500;
-  const Cardinal origDir = CurrentPosition.dir;
   
-  byte currentWalls = 0;
-
-  //for 0 to 3 (3 turns, 360*)
-  for (byte  i = 0; i < 4; i++) {
-    //discover walls
-    this->discoverWalls();
-    //find direction behind us
-    Cardinal opposite;
-      if (CurrentPosition.dir <= east) {
-        opposite = (Cardinal)((byte)CurrentPosition.dir + 2);
-      } else {
-        opposite = (Cardinal)((byte)CurrentPosition.dir - 2);
-      }
-    for (byte j = north; j <= west; j++) {
-      //check all dir but opposite
-      if ((Cardinal)j == opposite)
-        continue;
+  void MicroMouse::calForwardWall() {
+    #define roughCalDist 500
+    bool front = false, right = false, left = false;
+    byte walls = 0;
+    if (analogRead(frontIRSensor) > isFrontWall) {
+        Serial.println("front wall");
+        front = true;
+        walls++;
+    }
+    if (analogRead(rightIRSensor) > isRightWall) {
+        Serial.println("right wall");
+        right = true;
+        walls++;
+    }
+    if (analogRead(leftIRSensor) > isLeftWall) {
+        Serial.println("left wall");
+        left = true;
+        walls++;
+    }
+    if (walls >=2 && front) {
+      Serial.println("run frontCal");
+      int maximum = 0;
       
-      //add/remove walls
-      if (isWall((Cardinal)j)) {
-        currentWalls |= (1 << j);
-      } else {
-        currentWalls &= ((1 << Cardinal(j)) ^ 0x0F);
+      resetEncoders();
+      motors.setSpeeds(0.85*leftTurnSpeed, -0.85*rightTurnSpeed);
+      while (getEncoderDistance() < turnArch/2) {
+        int total;
+        total = 0;
+        if (front) {
+          total += analogRead(frontIRSensor);
+        }
+        if (right) {
+          total += analogRead(rightIRSensor);
+        }
+        if (left) {
+          total += analogRead(leftIRSensor);
+        }
+        if (total > maximum)
+          maximum = total;
       }
-
-      //if wall in front, move slightly to it
-      if (isWall(CurrentPosition.dir)) {
-        
-      }
-      byte rDir = (byte)origDir + 1;
-      rDir = (rDir > 4) ? 1 : rDir;
+      motors.setSpeeds(0,0);
+      delay(2);
+      resetEncoders();
       
-      if (isWall((Cardinal)rDir) {
-        this->updateDir((Cardinal)rDir);
-        
-
-        
+      motors.setSpeeds(-0.85*leftTurnSpeed, 0.85*rightTurnSpeed);
+      while (getEncoderDistance() < turnArch) {
+        int total;
+        total = 0;
+        if (front) {
+          total += analogRead(frontIRSensor);
+        }
+        if (right) {
+          total += analogRead(rightIRSensor);
+        }
+        if (left) {
+          total += analogRead(leftIRSensor);
+        }
+        if (total > maximum)
+          maximum = total;
       }
+      motors.setSpeeds(0,0);
+      delay(2);
+      resetEncoders();
+
+      motors.setSpeeds(0.85*leftTurnSpeed, -0.85*rightTurnSpeed);
+      while(getEncoderDistance() < (3*turnArch/2)) {
+        int total;
+        total = 0;
+        if (front) {
+          total += analogRead(frontIRSensor);
+        }
+        if (right) {
+          total += analogRead(rightIRSensor);
+        }
+        if (left) {
+          total += analogRead(leftIRSensor);
+        }
+        if (maximum - total <= 52 && maximum - total >= -52) {
+          Serial.print("Cal complete - error ");
+          Serial.println(maximum - total);
+          break;
+        } else {
+          Serial.print("cal error ");
+          Serial.println(maximum - total);
+        }
+      }
+      motors.setSpeeds(0,0);
+      delay(5);
+      resetEncoders();
+
+      while (analogRead(frontIRSensor) < 570 && getEncoderDistance() < encoderPulsesPerCell/3) {
+        motors.setSpeeds(0.85*leftTurnSpeed, 0.85*rightTurnSpeed);
+      }
+      motors.setSpeeds(0,0);
+      
+      delay(50);
+      cellsSinceCal = 0;
     }
   }
-  //calibrate rear
 
-  //else if no rear, calibrate front
-
-  //calibrate both sides if exist
-
-  void calForwardWall() {
-    resetEncoders();
-    motors.setSpeeds(leftTurnSpeed, rightTurnSpeed);
-    while(analogRead(fIRSensor) < roughCalDist && getEncoderDist < encoderPulsesPerCell/2) {
-      byte i = 0;
-      i++;
-    }
+  void MicroMouse::resetToStartPosition() {
+    CurrentPosition.x = 0; CurrentPosition.y = 0;
+    CurrentPosition.dir = north;
     motors.setSpeeds(0,0);
-    delay(500);
-    resetEncoders();
   }
-}
+

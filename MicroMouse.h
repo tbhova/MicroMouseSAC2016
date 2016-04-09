@@ -17,11 +17,14 @@ namespace hova {
     void discoverWalls();
 
     Position getPosition() const;
-    ZumoMotors motors;
 
-    void calibratePosition();
+    void resetToStartPosition();
+
+    void calForwardWall();
     
     private:
+    byte cellsSinceCal;
+    ZumoMotors motors;
     void updateDirection(const Cardinal &desired);
     bool moveForwardOneCell();
     void turn90(const bool right = false);

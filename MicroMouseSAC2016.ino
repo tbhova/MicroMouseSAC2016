@@ -2,7 +2,6 @@
 #include "maze.h"
 #include "MicroMouse.h"
 #include "DataTypes.h"
-//#include <NewPing.h>
 #include "Hardware.h"
 #include <Pushbutton.h>
 
@@ -15,8 +14,19 @@ Maze *maze;
 NewPing *leftSensor;
 NewPing *rightSensor;*/
 Pushbutton button(ZUMO_BUTTON);
+
+bool stopped = true;
+
+void checkButton() {
+  if (button.isPressed()) {
+    mouse->resetToStartPosition();
+    button.waitForRelease();
+    button.waitForButton();
+    delay(5000);
+  }
+}
+
 void setup() {
-  // put your setup code here, to run once:
   mouse = new MicroMouse();
   maze = new Maze();
 
@@ -31,8 +41,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(rightEncoder), rightEncoderUpdate, RISING);
   pinMode(leftEncoder, INPUT);
   attachInterrupt(digitalPinToInterrupt(leftEncoder), leftEncoderUpdate, RISING);
-  
-  attachInterrupt(digitalPinToInterrupt(ZUMO_BUTTON), buttonUpdate, CHANGE);
 
   Serial.begin(115200);
   Serial.println("begin");
@@ -48,26 +56,35 @@ void setup() {
   pinMode(leftTP, OUTPUT);
   pinMode(leftEP, INPUT);*/
 
+  button.waitForButton();
+  delay(5000);
   maze->cellVisited(0, 0);
-  mouse->discoverWalls();
-
-  Position currentPosition = mouse->getPosition();
-  //update walls
-  for (unsigned char i = north; i <= west; i++) {
-    if (mouse->isWall((Cardinal)i))
-      maze->placeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
-  }
-  mouse->motors.setSpeeds(200,200);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
-  //while(!started)
-    //mouse->motors.setSpeeds(0, 0);
+  checkButton();
   
   //get mouse position
   Position currentPosition = mouse->getPosition();
+
+  if (!maze->allCellsVisited()) {
+    //state we visited this cell
+    maze->cellVisited(currentPosition.x, currentPosition.y);
+    
+    //update walls
+    mouse->discoverWalls();
+    for (unsigned char i = north; i <= west; i++) {
+      if (mouse->isWall((Cardinal)i)) {
+        maze->placeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
+        Serial.print("place wall ");
+        Serial.print(i);
+        Serial.print(' ');
+      } else
+        maze->removeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
+    }
+    Serial.println();
+  }
+  
   //Serial.println((float)analogRead(A2)*(float)5/(float)1023);
   Serial.print("Mouse pos ");
   Serial.print(currentPosition.x);
@@ -93,20 +110,4 @@ void loop() {
 
   //update current position with mouse's new position
   currentPosition = mouse->getPosition();
-    
-  if (!maze->allCellsVisited()) {
-    //state we visited this cell
-    maze->cellVisited(currentPosition.x, currentPosition.y);
-    
-    //update walls
-    for (unsigned char i = north; i <= west; i++) {
-      if (mouse->isWall((Cardinal)i)) {
-        maze->placeWall(currentPosition.x, currentPosition.y, (Cardinal)i);
-        Serial.print("place wall ");
-        Serial.print(i);
-        Serial.print(' ');
-      }
-    }
-    Serial.println();
-  }
 }

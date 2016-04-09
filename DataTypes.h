@@ -1,6 +1,5 @@
 #pragma once
 
-#warning use values assigned to directions to reduce switches
 //cardinal directions
 enum Cardinal {
   north = 1,
