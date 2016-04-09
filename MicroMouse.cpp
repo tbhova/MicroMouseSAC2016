@@ -92,6 +92,7 @@ void MicroMouse::turn90(bool right) {
     //Serial.println((int)rightEncoderCount - (int)leftEncoderCount);
     static byte i = 0;
     i++;
+    break;
   }
   motors.setSpeeds(0, 0);
   //Serial.print("Encoder pules ");
@@ -117,6 +118,7 @@ bool MicroMouse::moveForwardOneCell() {
   #define encoderPulsesPerCell 339
   bool frontWallPresent = false;
   while(getEncoderDistance() < encoderPulsesPerCell && !frontWallPresent) {
+    break;
     /*Serial.print("r ");
     Serial.print(rightEncoderCount);
     Serial.print(' ');

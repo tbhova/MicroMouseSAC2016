@@ -29,7 +29,7 @@ namespace hova {
   }
 
   bool Maze::allCellsVisited() {
-    #warning add count cells visited and if number is small enough, set cells with 4 walls to visited (watch for big enclosed areas)
+    /*#warning add count cells visited and if number is small enough, set cells with 4 walls to visited (watch for big enclosed areas)
     
     static bool allVisited = false;
     if (allVisited)
@@ -42,7 +42,8 @@ namespace hova {
     }
 
     allVisited = temp;
-    return allVisited;
+    return allVisited;*/
+    return false;
   }
 
   void Maze::placeWall(unsigned char row, unsigned char column, Cardinal wall) {
@@ -58,12 +59,13 @@ namespace hova {
   }
 
   Cardinal Maze::getDirection(const Position &pos) {
-    if (this->allCellsVisited())
-        return this->bestRoute(pos);
-    return this->discoverMoreCells(pos);
+    /*if (this->allCellsVisited())
+        return this->bestRoute(pos);*/
+    //return this->discoverMoreCells(pos);
+    return this->floodFill(pos);
   }
   
-  Cardinal Maze::discoverMoreCells(Position pos) {
+/*  Cardinal Maze::discoverMoreCells(Position pos) {
     //set up bfs
     short unsigned int bfsDisc[16];
     //unsigned char distanceTo[16][16];
@@ -77,12 +79,12 @@ namespace hova {
     Serial.print(dest.x);
     Serial.print(" ");
     Serial.println(dest.y);*/
-    return directionToCell(dest, pos, bfsDisc);
-  }
+  /*  return directionToCell(dest, pos, bfsDisc);
+  }*/
 
-  Position Maze::findNearestUndiscoveredCell(Position current) const {
+  /*Position Maze::findNearestUndiscoveredCell(Position current) const {
     //determine whether there are cells that aren't the middle that are undiscovered
-    bool otherCellsAvailable = false;
+    /*bool otherCellsAvailable = false;
     for (byte i = 0; i < 16; i++) {
       for (byte j = 0; j < 16; j++) {
         if (!((i == 7 || i == 8) && (j == 7 || j == 8)) && !isCellVisited(i, j)) {
@@ -92,9 +94,14 @@ namespace hova {
       }
     }
     ///return early if only center cells exist;
-    if (!otherCellsAvailable) {
+    if (!otherCellsAvailable) {*/
+    /*Position dest;
+    if(!((current.x == 7 || current.x == 8) && (current.y == 7 || current.y==8))) {
+      current.x = 7; current.y = 7;
+      return current;
+    } else {
       #warning ensure to check for walls in center, that will break this code
-      static unsigned char centersVisited = 0;
+      static unsigned char centersVisited = 1;
       switch (centersVisited) {
       case(0):
         current.x = 7; current.y = 7;
@@ -116,7 +123,7 @@ namespace hova {
       return current;
     }
     //look for cell
-    for (byte i = 1; i < 15; i++) {
+    /*for (byte i = 1; i < 15; i++) {
       if(!((current.x + i == 7 || current.x + i == 8) && (current.y == 7 || current.y == 8)) && (current.x + i < 16) && !isCellVisited(current.x + i, current.y)) {
         current.x += i;
         return current;
@@ -130,7 +137,7 @@ namespace hova {
         else
           Serial.println('F');
       }*/
-      if(!((current.x == 7 || current.x == 8) && (current.y + i == 7 || current.y + i == 8)) && (current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
+      /*if(!((current.x == 7 || current.x == 8) && (current.y + i == 7 || current.y + i == 8)) && (current.y + i < 16) && !isCellVisited(current.x, current.y+i)) {
         current.y += i;
         return current;
       }
@@ -143,8 +150,8 @@ namespace hova {
         return current;
       }
     }
-    return current;
-  }
+    return current;*/
+/*  }
 
   Cardinal Maze::directionToCell(const Position &des, const Position &current, short unsigned int discovered[]) {
     Serial.print("dir to ");
@@ -176,16 +183,16 @@ namespace hova {
       Serial.print(' ');
       Serial.println(cur.y);*/
       
-      //go through adjacency list
+  /*    //go through adjacency list
       for (byte i = north; i <= west; i++) {
         /*Serial.print("Loop ");
         Serial.println(i);*/
-        cur = queue.peek(); //update front element since we modify it
+     /*   cur = queue.peek(); //update front element since we modify it
         //check if cells are adjacent (no wall)
         if (!this->isWall(cur.x, cur.y, (Cardinal) i)) {
           /*Serial.print("No wall ");
           Serial.println(i);*/
-          Cardinal opposite;
+       /*   Cardinal opposite;
           switch ((Cardinal)i) {
             case (north) :
               cur.y++;
@@ -210,7 +217,7 @@ namespace hova {
             Serial.print(cur.x);
             Serial.print(' ');
             Serial.println(cur.y);*/
-            queue.push(cur);
+         /*   queue.push(cur);
             //if we are at destination, stop
             if (cur.x == des.x && cur.y == des.y) {
               //Serial.println("BFS found");
@@ -238,7 +245,7 @@ namespace hova {
       Serial.print(cur.x);
       Serial.print(' ');
       Serial.println(cur.y);*/
-      if (cur.x >= 16 || cur.x < 0 || cur.y < 0 || cur.y >=16)
+      /*if (cur.x >= 16 || cur.x < 0 || cur.y < 0 || cur.y >=16)
         break;
       if (whereFrom[cur.x][cur.y] == 0)
         break;
@@ -270,12 +277,12 @@ namespace hova {
     }
     Serial.println("Error BFS failed");
     return north;
-  }
+  }*/
 
-  Cardinal Maze::bestRoute(const Position &pos) {
+  /*Cardinal Maze::bestRoute(const Position &pos) {
     #warning use bfs from above, break up into more methods, making the method more generic, so bfs can be recycled
     return north;
-  }
+  }*/
 
   bool Maze::isCellVisited(const unsigned char row, const unsigned char column) const {
     return ((cellsVisited[row] & (1 << (column))) > 0);
@@ -283,5 +290,125 @@ namespace hova {
   
   bool Maze::isWall(const unsigned char row, const unsigned char column, const Cardinal dir) const {
     return ((mazeWalls[row][column] & (1 << dir)) > 0);
+  }
+  void Maze:: floodVisit(byte x, byte y, short unsigned int visited[]) {
+    byte minimum = 255;
+    if (y+1 < 16 && floodValues[x][y+1] < minimum)
+      minimum = floodValues[x][y+1];
+    if (x+1 < 16 && floodValues[x+1][y] < minimum)
+      minimum = floodValues[x+1][y];
+    if (y-1 >= 0 && floodValues[x][y-1] < minimum)
+      minimum = floodValues[x][y-1];
+    if (x-1 >= 0 && floodValues[x-1][y] < minimum)
+      minimum = floodValues[x-1][y];
+    minimum = (minimum == 255) ? 0 : minimum;
+    floodValues[x][y] = minimum;
+
+    visited[x] |= (1<<y);
+  }
+
+  void Maze::addFloodQueue(const Cell &cur, QueueList<Cell> &queue) {
+    Cell Push;
+    if (cur.y - 1 >= 0 && !isWall(cur.x, cur.y, south)) {
+      Push.x = cur.x; Push.y = cur.y-1;
+      queue.push(Push);
+    }
+    if (cur.x + 1 < 16 && !isWall(cur.x, cur.y, east)) {
+      Push.x = cur.x+1; Push.y = cur.y;
+      queue.push(Push);
+    }
+    if (cur.y + 1 < 16 && !isWall(cur.x, cur.y, north)) {
+      Push.x = cur.x; Push.y = cur.y+1;
+      queue.push(Push);
+    }
+    if (cur.x - 1 >= 0 && !isWall(cur.x, cur.y, west)) {
+      Push.x = cur.x-1; Push.y = cur.y;
+      queue.push(Push);
+    }
+  }
+
+  byte Maze::floodMinimum(byte x, byte y) {
+    byte ret = 255;
+    if (x - 1 >= 0 && !isWall(x, y, west)) {
+      ret = (ret < floodValues[x-1][y]) ? ret : floodValues[x-1][y];
+    }
+    if (x+1 < 16 && !isWall(x, y, north)) {
+      ret = (ret < floodValues[x][y+1]) ? ret : floodValues[x][y+1];
+    }
+    if (x+1 < 16 && !isWall(x, y, east)) {
+      ret = (ret < floodValues[x+1][y]) ? ret : floodValues[x+1][y];
+    }
+    if (y-1 >= 0 && !isWall(x, y, south)) {
+      ret = (ret < floodValues[x][y-1]) ? ret : floodValues[x][y-1];
+    }
+    return ret;
+  }
+  
+  Cardinal Maze::floodFill(const Position &current) {
+    short unsigned int visited[16];
+    //reset
+    for (int i = 0; i < 16; i++) {
+      visited[i] = 0;
+      for (int j = 0; j < 16; j++)
+        floodValues[i][j]=255;
+    }
+    floodVisit(7,7,visited);
+    floodVisit(8,7,visited);
+    floodVisit(7,8,visited);
+    floodVisit(8,8,visited);
+    
+    Cell cur;
+    QueueList<Cell> queue;
+    cur.x = 7; cur.y = 7;
+    addFloodQueue(cur, queue);
+    cur.x = 7; cur.y = 8;
+    addFloodQueue(cur, queue);
+    cur.x = 8; cur.y = 7;
+    addFloodQueue(cur, queue);
+    cur.x = 8; cur.y = 8;
+    addFloodQueue(cur, queue);
+
+    while(!queue.isEmpty()) {
+      cur = queue.pop();
+      floodVisit(cur.x, cur.y, visited);
+      addFloodQueue(cur, queue);
+    }
+
+    byte minimum = floodMinimum(current.x, current.y);
+
+    return FloodDirection(current, minimum);
+  }
+
+  byte Maze::FloodValueAt(byte x, byte y, Cardinal dir) {
+    switch(dir) {
+      case (north) :
+        return floodValues[x][y+1];
+      case (south) :
+        return floodValues[x][y-1];
+      case (west) :
+        return floodValues[x-1][y];
+      case (east) :
+        return floodValues[x+1][y];  
+    }
+  }
+  Cardinal Maze::FloodDirection(const Position &current, byte minimum) {
+    //prefer straight
+    if(!isWall(current.x, current.y, current.dir) && minimum == FloodValueAt(current.x, current.y, current.dir)) {
+      return current.dir;
+    }
+    byte right = current.dir + 1;
+    right = (right > 4) ? right - 4 : right;
+    byte left = current.dir - 1;
+    left = (left < 1) ? 4 - left : left;
+    byte rear = current.dir + 2;
+    rear = (rear > 4) ? rear - 4: rear;
+    if (!isWall(current.x, current.y, (Cardinal)right) && minimum == FloodValueAt(current.x, current.y, (Cardinal)right)) {
+      return (Cardinal)right;
+    }
+    else if (!isWall(current.x, current.y, (Cardinal)left) && minimum == FloodValueAt(current.x, current.y, (Cardinal)left)) {
+      return (Cardinal)left;
+    } else if (!isWall(current.x, current.y, (Cardinal)rear) && minimum == FloodValueAt(current.x, current.y, (Cardinal)rear)) {
+      return (Cardinal)rear;
+    }
   }
 }
