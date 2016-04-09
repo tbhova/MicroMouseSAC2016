@@ -40,10 +40,10 @@ namespace hova {
     //Position findNearestUndiscoveredCell(Position pos) const;
     //Cardinal directionToCell(const Position &dest, const Position &current, short unsigned int discovered[]);
     Cardinal floodFill(const Position &current);
-    void floodVisit(byte x, byte y, short unsigned int visted[]);
+    void floodVisit(byte x, byte y);
     byte floodMinimum();
     Cardinal FloodDirection(const Position &current, byte minimum);
-    void addFloodQueue(const Cell &cur, QueueList<Cell> &queue);
+    void addFloodQueue(const Cell &cur, QueueList<Cell> &queue, short unsigned int visted[]);
     byte floodMinimum(byte x, byte y);
     byte FloodValueAt(byte x, byte y, Cardinal dir);
   };

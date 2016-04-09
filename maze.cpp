@@ -291,7 +291,7 @@ namespace hova {
   bool Maze::isWall(const unsigned char row, const unsigned char column, const Cardinal dir) const {
     return ((mazeWalls[row][column] & (1 << dir)) > 0);
   }
-  void Maze:: floodVisit(byte x, byte y, short unsigned int visited[]) {
+  void Maze:: floodVisit(byte x, byte y) {
     byte minimum = 255;
     if (y+1 < 16 && floodValues[x][y+1] < minimum)
       minimum = floodValues[x][y+1];
@@ -303,26 +303,36 @@ namespace hova {
       minimum = floodValues[x-1][y];
     minimum = (minimum == 255) ? 0 : minimum;
     floodValues[x][y] = minimum;
-
-    visited[x] |= (1<<y);
   }
 
-  void Maze::addFloodQueue(const Cell &cur, QueueList<Cell> &queue) {
+  void Maze::addFloodQueue(const Cell &cur, QueueList<Cell> &queue, short unsigned int visited[]) {
     Cell Push;
-    if (cur.y - 1 >= 0 && !isWall(cur.x, cur.y, south)) {
+    /*Serial.print("add flood queue ");
+    Serial.print(cur.x);
+    Serial.print(' ');
+    Serial.println(cur.y);*/
+    //Serial.println(visited[cur.x] & (1 << (cur.y-1)));
+    if (cur.y - 1 >= 0 && !isWall(cur.x, cur.y, south) && ((visited[cur.x] & (1 << (cur.y-1))) == 0)) {
       Push.x = cur.x; Push.y = cur.y-1;
+      visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
-    if (cur.x + 1 < 16 && !isWall(cur.x, cur.y, east)) {
+    //Serial.println(visited[cur.x+1] & (1 << (cur.y)));
+    if (cur.x + 1 < 16 && !isWall(cur.x, cur.y, east) && (visited[cur.x+1] & (1 << cur.y) == 0)) {
       Push.x = cur.x+1; Push.y = cur.y;
+      visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
-    if (cur.y + 1 < 16 && !isWall(cur.x, cur.y, north)) {
+    //Serial.println(visited[cur.x] & (1 << (cur.y+1)));
+    if (cur.y + 1 < 16 && !isWall(cur.x, cur.y, north) && (visited[cur.x] & (1 << (cur.y+1)) == 0)) {
       Push.x = cur.x; Push.y = cur.y+1;
+      visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
-    if (cur.x - 1 >= 0 && !isWall(cur.x, cur.y, west)) {
+    //Serial.println(visited[cur.x-1] & (1 << (cur.y)));
+    if (cur.x - 1 >= 0 && !isWall(cur.x, cur.y, west) && (visited[cur.x-1] & (1 << cur.y) == 0)) {
       Push.x = cur.x-1; Push.y = cur.y;
+      visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
   }
@@ -353,28 +363,31 @@ namespace hova {
       for (int j = 0; j < 16; j++)
         floodValues[i][j]=255;
     }
-    floodVisit(7,7,visited);
-    floodVisit(8,7,visited);
-    floodVisit(7,8,visited);
-    floodVisit(8,8,visited);
+    visited[7] |= (1 << 7);
+    visited[7] |= (1 << 8);
+    visited[8] |= (1 << 7);
+    visited[8] |= (1 << 8);
+    floodVisit(7,7);
+    floodVisit(8,7);
+    floodVisit(7,8);
+    floodVisit(8,8);
     
     Cell cur;
     QueueList<Cell> queue;
     cur.x = 7; cur.y = 7;
-    addFloodQueue(cur, queue);
+    addFloodQueue(cur, queue, visited);
     cur.x = 7; cur.y = 8;
-    addFloodQueue(cur, queue);
+    addFloodQueue(cur, queue, visited);
     cur.x = 8; cur.y = 7;
-    addFloodQueue(cur, queue);
+    addFloodQueue(cur, queue, visited);
     cur.x = 8; cur.y = 8;
-    addFloodQueue(cur, queue);
-
+    addFloodQueue(cur, queue, visited);
+    Serial.println(queue.count());
     while(!queue.isEmpty()) {
-      static byte floodCount = 0;
-      Serial.println(++floodCount);
+      Serial.println(queue.count());
       cur = queue.pop();
-      floodVisit(cur.x, cur.y, visited);
-      addFloodQueue(cur, queue);
+      floodVisit(cur.x, cur.y);
+      addFloodQueue(cur, queue, visited);
     }
 
     byte minimum = floodMinimum(current.x, current.y);
