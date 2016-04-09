@@ -79,7 +79,7 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
   }
 }
 
-const short unsigned int leftTurnSpeed = 260, rightTurnSpeed = 250;
+const short unsigned int leftTurnSpeed = 286, rightTurnSpeed = 275;
 const byte turnArch = 152;
 void MicroMouse::turn90(bool right) {
   resetEncoders();
@@ -98,12 +98,12 @@ void MicroMouse::turn90(bool right) {
     //Serial.println((int)rightEncoderCount - (int)leftEncoderCount);
     static byte i = 0;
     i++;
-    //break;
+    break;
   }
   motors.setSpeeds(0, 0);
   //Serial.print("Encoder pules ");
   //Serial.println(getEncoderDistance());
-  delay(75);
+  delay(50);
   resetEncoders();
 }
 
@@ -113,8 +113,8 @@ void MicroMouse::turn90(bool right) {
     
 bool MicroMouse::moveForwardOneCell() {
   Serial.println("Forward");
-  #define leftSpeed 375
-  #define rightSpeed 300
+  #define leftSpeed 320
+  #define rightSpeed 308
   resetEncoders();
   //motors.setSpeeds(forwardSpeed, forwardSpeed);
 
@@ -124,18 +124,18 @@ bool MicroMouse::moveForwardOneCell() {
   #define encoderPulsesPerCell 339
   bool frontWallPresent = false;
   while(getEncoderDistance() < encoderPulsesPerCell && !frontWallPresent) {
-    //break;
+    break;
     /*Serial.print("r ");
     Serial.print(rightEncoderCount);
     Serial.print(' ');
     Serial.println(encoderPulsesPerCell);*/
     #warning //detect wall edge and use as landmark for centering
     #warning //makesure there is no wall in front of us
-    #define lTargetDist 550
-    #define rTargetDist 550
+    #define lTargetDist 560
+    #define rTargetDist 560
     #define loopTime 1
     #define Kp 0.4
-    #define Kd 0.32
+    #define Kd 0.36
     #define frontStoppingDistance 400
     
     static unsigned long oldMillis = 0;
@@ -203,7 +203,7 @@ bool MicroMouse::moveForwardOneCell() {
   motors.setSpeeds(0, 0);
   //Serial.print("Encoder pules ");
   //Serial.println(getEncoderDistance());
-  delay(75);
+  delay(50);
   bool ret = true;
   //determine whether we moved forward one cell
   if(frontWallPresent && getEncoderDistance() < (encoderPulsesPerCell/3)) {
@@ -294,6 +294,7 @@ Position MicroMouse::getPosition() const{
   
   void MicroMouse::calForwardWall() {
     #define roughCalDist 500
+    return;
     bool front = false, right = false, left = false;
     byte walls = 0;
     if (analogRead(frontIRSensor) > isFrontWall) {
