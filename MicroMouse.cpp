@@ -47,7 +47,12 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
   Serial.print(desired);
   Serial.print(" cur ");
   Serial.println(CurrentPosition.dir);*/
-  char delta = (char)desired - (char)CurrentPosition.dir;
+  Serial.println("update dir");
+  Serial.print("des ");
+  Serial.println(desired);
+  Serial.print("cur ");
+  Serial.println(CurrentPosition.dir);
+  signed short int delta = (signed short int)desired - (signed short int )CurrentPosition.dir;
   //return early if we are going strait
   if (delta == 0)
     return;
@@ -63,6 +68,7 @@ void MicroMouse::updateDirection(const Cardinal &desired) {
   } else if (delta > 0) {
     for (byte i = 0; i < delta; i++) {
       //turn right
+      Serial.println(delta);
       turn90(true);
     }
   } else if (delta < 0) {
@@ -92,7 +98,7 @@ void MicroMouse::turn90(bool right) {
     //Serial.println((int)rightEncoderCount - (int)leftEncoderCount);
     static byte i = 0;
     i++;
-    break;
+    //break;
   }
   motors.setSpeeds(0, 0);
   //Serial.print("Encoder pules ");
@@ -118,7 +124,7 @@ bool MicroMouse::moveForwardOneCell() {
   #define encoderPulsesPerCell 339
   bool frontWallPresent = false;
   while(getEncoderDistance() < encoderPulsesPerCell && !frontWallPresent) {
-    break;
+    //break;
     /*Serial.print("r ");
     Serial.print(rightEncoderCount);
     Serial.print(' ');
@@ -145,7 +151,7 @@ bool MicroMouse::moveForwardOneCell() {
         forwardError++;
         if (forwardError > 2) { //if we have have seen at least 3 readings with the front wall present
           frontWallPresent = true;
-          break; //s-top loop
+          break;
         }
       }
       

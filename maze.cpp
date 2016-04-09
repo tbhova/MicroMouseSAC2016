@@ -313,24 +313,28 @@ namespace hova {
     Serial.println(cur.y);*/
     //Serial.println(visited[cur.x] & (1 << (cur.y-1)));
     if (cur.y - 1 >= 0 && !isWall(cur.x, cur.y, south) && ((visited[cur.x] & (1 << (cur.y-1))) == 0)) {
+      //Serial.println("push north");
       Push.x = cur.x; Push.y = cur.y-1;
       visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
     //Serial.println(visited[cur.x+1] & (1 << (cur.y)));
-    if (cur.x + 1 < 16 && !isWall(cur.x, cur.y, east) && (visited[cur.x+1] & (1 << cur.y) == 0)) {
+    if (cur.x + 1 < 16 && !isWall(cur.x, cur.y, east) && ((visited[cur.x+1] & (1 << cur.y)) == 0)) {
+      //Serial.println("push east");
       Push.x = cur.x+1; Push.y = cur.y;
       visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
     //Serial.println(visited[cur.x] & (1 << (cur.y+1)));
-    if (cur.y + 1 < 16 && !isWall(cur.x, cur.y, north) && (visited[cur.x] & (1 << (cur.y+1)) == 0)) {
+    if (cur.y + 1 < 16 && !isWall(cur.x, cur.y, north) && ((visited[cur.x] & (1 << (cur.y+1))) == 0)) {
+      //Serial.println("push north");
       Push.x = cur.x; Push.y = cur.y+1;
       visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
     }
     //Serial.println(visited[cur.x-1] & (1 << (cur.y)));
-    if (cur.x - 1 >= 0 && !isWall(cur.x, cur.y, west) && (visited[cur.x-1] & (1 << cur.y) == 0)) {
+    if (cur.x - 1 >= 0 && !isWall(cur.x, cur.y, west) && ((visited[cur.x-1] & (1 << cur.y)) == 0)) {
+      //Serial.println("push west");
       Push.x = cur.x-1; Push.y = cur.y;
       visited[Push.x] |= (1 << Push.y);
       queue.push(Push);
@@ -386,6 +390,10 @@ namespace hova {
     while(!queue.isEmpty()) {
       Serial.println(queue.count());
       cur = queue.pop();
+      Serial.print("cell ");
+      Serial.print(cur.x);
+      Serial.print(" ");
+      Serial.println(cur.y);
       floodVisit(cur.x, cur.y);
       addFloodQueue(cur, queue, visited);
     }
@@ -401,17 +409,29 @@ namespace hova {
   byte Maze::FloodValueAt(byte x, byte y, Cardinal dir) {
     switch(dir) {
       case (north) :
+        if (y+1 > 15)
+        return 255;
         return floodValues[x][y+1];
       case (south) :
+        if (y-1 < 0)
+        return 255;
         return floodValues[x][y-1];
       case (west) :
+      if (x-1 < 0)
+        return 255;
         return floodValues[x-1][y];
       case (east) :
+      if (x+1 > 15)
+        return 255;
         return floodValues[x+1][y];  
     }
   }
   Cardinal Maze::FloodDirection(const Position &current, byte minimum) {
     //prefer straight
+    Serial.print("get flood dir ");
+    Serial.print(current.x);
+    Serial.print(' ');
+    Serial.println(current.y);
     if(!isWall(current.x, current.y, current.dir) && minimum == FloodValueAt(current.x, current.y, current.dir)) {
       Serial.println("Front");
       return current.dir;
@@ -433,6 +453,8 @@ namespace hova {
       Serial.println("rear");
       return (Cardinal)rear;
     }
+    Serial.println("Error Flood fail");
+    return north;
   }
 
 void Maze::printFloodMaze() {
