@@ -302,7 +302,7 @@ namespace hova {
     if (x-1 >= 0 && floodValues[x-1][y] < minimum)
       minimum = floodValues[x-1][y];
     minimum = (minimum == 255) ? 0 : minimum;
-    floodValues[x][y] = minimum;
+    floodValues[x][y] = minimum+1;
   }
 
   void Maze::addFloodQueue(const Cell &cur, QueueList<Cell> &queue, short unsigned int visited[]) {
@@ -391,7 +391,10 @@ namespace hova {
     }
 
     byte minimum = floodMinimum(current.x, current.y);
+    Serial.print("min ");
+    Serial.println(minimum);
 
+    this->printFloodMaze();
     return FloodDirection(current, minimum);
   }
 
@@ -410,6 +413,7 @@ namespace hova {
   Cardinal Maze::FloodDirection(const Position &current, byte minimum) {
     //prefer straight
     if(!isWall(current.x, current.y, current.dir) && minimum == FloodValueAt(current.x, current.y, current.dir)) {
+      Serial.println("Front");
       return current.dir;
     }
     byte right = current.dir + 1;
@@ -419,12 +423,26 @@ namespace hova {
     byte rear = current.dir + 2;
     rear = (rear > 4) ? rear - 4: rear;
     if (!isWall(current.x, current.y, (Cardinal)right) && minimum == FloodValueAt(current.x, current.y, (Cardinal)right)) {
+      Serial.println("right");
       return (Cardinal)right;
     }
     else if (!isWall(current.x, current.y, (Cardinal)left) && minimum == FloodValueAt(current.x, current.y, (Cardinal)left)) {
+      Serial.println("left");
       return (Cardinal)left;
     } else if (!isWall(current.x, current.y, (Cardinal)rear) && minimum == FloodValueAt(current.x, current.y, (Cardinal)rear)) {
+      Serial.println("rear");
       return (Cardinal)rear;
     }
   }
+
+void Maze::printFloodMaze() {
+  //print floodValues
+  Serial.println();
+  Serial.println("Flood Fill matrix");
+
+  //add code here
+  Serial.print(floodValues[0][0]);
+  Serial.println(floodValues[0][1]);
+}
+
 }

@@ -46,6 +46,7 @@ namespace hova {
     void addFloodQueue(const Cell &cur, QueueList<Cell> &queue, short unsigned int visted[]);
     byte floodMinimum(byte x, byte y);
     byte FloodValueAt(byte x, byte y, Cardinal dir);
+    void printFloodMaze();
   };
 }
 
