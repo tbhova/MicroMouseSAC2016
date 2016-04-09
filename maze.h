@@ -27,8 +27,8 @@ namespace hova {
     
     //indices are rows, columns, last 4 bits of each number is used for the 4 walls
     //bits in order from MSB first north, south, west, east
-    unsigned char mazeWalls[16][16];
-    unsigned char floodValues[16][16];
+     byte mazeWalls[16][16];
+     byte floodValues[16][16];
   
     //indicies are rows (columns are the 16 bits of each number)
     short unsigned int cellsVisited[16];

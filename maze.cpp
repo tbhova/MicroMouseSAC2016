@@ -441,8 +441,14 @@ void Maze::printFloodMaze() {
   Serial.println("Flood Fill matrix");
 
   //add code here
-  Serial.print(floodValues[0][0]);
-  Serial.println(floodValues[0][1]);
+  for(int i=0; i<16; i++){
+    for(int j=0; j<16; j++){
+      Serial.print(floodValues[i][j]);
+      Serial.println();
+    }
+  }
+  //Serial.print(floodValues[0][0]);
+  //Serial.println(floodValues[0][1]);
 }
 
 }
