@@ -1,8 +1,8 @@
 #include "Hardware.h"
 #include "globals.h"
 
-unsigned int leftEncoderCount;
-unsigned int rightEncoderCount;
+short unsigned int leftEncoderCount;
+short unsigned int rightEncoderCount;
 
 namespace hova {
 

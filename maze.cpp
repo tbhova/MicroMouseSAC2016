@@ -345,6 +345,7 @@ namespace hova {
   }
   
   Cardinal Maze::floodFill(const Position &current) {
+    Serial.println("Flood Fill");
     short unsigned int visited[16];
     //reset
     for (int i = 0; i < 16; i++) {
@@ -369,6 +370,8 @@ namespace hova {
     addFloodQueue(cur, queue);
 
     while(!queue.isEmpty()) {
+      static byte floodCount = 0;
+      Serial.println(++floodCount);
       cur = queue.pop();
       floodVisit(cur.x, cur.y, visited);
       addFloodQueue(cur, queue);
