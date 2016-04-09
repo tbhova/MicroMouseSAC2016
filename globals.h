@@ -4,8 +4,8 @@
 //#include "maze.h"
 
 void checkButton();
-extern unsigned int leftEncoderCount;
-extern unsigned int rightEncoderCount;
+extern short unsigned int leftEncoderCount;
+extern short unsigned int rightEncoderCount;
 extern Pushbutton button;
 
 //extern hova::Maze *maze;
